@@ -1,14 +1,18 @@
 package secret
 
-import "testing"
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"testing"
+	"time"
 
-// "github.com/molin0000/secretMaster/rlp"
-import "github.com/molin0000/secretMaster/rlp"
+	"github.com/molin0000/secretMaster/rlp"
+)
 
 func TestRun(t *testing.T) {
-	b := NewSecretBot(333, 333, "cat")
-	fmt.Println(b.Run("@cat 帮助", 111))
+	b := NewSecretBot(3334, 333, "cat")
+	fmt.Println(b.Run("@cat 属性", 112, "mm"))
 }
 
 func TestRlp(t *testing.T) {
@@ -31,4 +35,25 @@ func TestRlp(t *testing.T) {
 
 	fmt.Printf("%+v", a)
 	fmt.Println(err)
+}
+
+func TestTime(t *testing.T) {
+	fmt.Println(time.Now())
+	fmt.Println(time.Now().Unix())
+
+	fmt.Println(time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05"))
+}
+
+func TestSprinf(t *testing.T) {
+	v := "asdf更换途径3sdfasdfaf"
+	fmt.Println(v)
+
+	// var s = "MemTotal: 1001332 kB"
+	var valid = regexp.MustCompile("[0-9]")
+	fmt.Println(fmt.Sprint(valid.FindAllStringSubmatch(v, -1)))
+	r := valid.FindAllStringSubmatch(v, -1)
+
+	a, err := strconv.Atoi(r[0][0])
+	fmt.Println(a, err)
+
 }

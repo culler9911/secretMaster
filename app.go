@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
-	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/molin0000/secretMaster/secret"
 )
 
 //go:generate cqcfg -c .
@@ -28,24 +26,15 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, msg string, font int32) int32 {
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 
-	cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+msg) //复读机
-	cqp.SendGroupMsg(fromGroup, "name:"+info.Name)
-	cqp.SendGroupMsg(fromGroup, "card:"+info.Card)
-	cqp.SendGroupMsg(fromGroup, fmt.Sprintf("%+v", info))
+	selfQQ := cqp.GetLoginQQ()
 
-	db, err := leveldb.OpenFile("secret.db", nil)
+	selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
 
-	db.Put([]byte("key"), []byte("value"), nil)
+	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
 
-	data, err := db.Get([]byte("key"), nil)
+	ret := bot.Run(msg, uint64(fromQQ), info.Name)
 
-	cqp.SendGroupMsg(fromGroup, string(data))
-
-	defer db.Close()
-
-	if err != nil {
-		return 1
-	}
+	cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
 
 	return 0
 }
