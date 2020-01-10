@@ -1,4 +1,4 @@
-module github.com/Tnze/CoolQ-Golang-Plugin
+module github.com/molin0000/secretMaster
 
 go 1.13
 
