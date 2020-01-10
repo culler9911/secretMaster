@@ -44,28 +44,28 @@ var botMenu = [...]string{
 }
 
 var secretInfo = [...]SecretInfo{
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
-	{SecretName: "aa", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "黑夜", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "死神", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "战神", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "暗", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "心灵", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "风暴", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "智慧", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "太阳", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "异种", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "深渊", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "秘密", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "工匠", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "愚者", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "门", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "时间", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "大地", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "月亮", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "命运", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "审判", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "黑皇帝", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "战争", SecretLevelName: [9]string{"a", "b", "c"}},
+	{SecretName: "魔女", SecretLevelName: [9]string{"a", "b", "c"}},
 }
 
 func NewSecretBot(qq, group uint64, groupNick string) *Bot {
@@ -112,18 +112,20 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 		verify, _ := getDb().Get(b.keys(fromQQ), nil)
 		var v Person
 		rlp.DecodeBytes(verify, &v)
-		fmt.Printf("%+v", v)
+		fmt.Printf("before level:%+v", v)
 		b.levelUpdate(&v)
+		fmt.Printf("after level:%+v", v)
 		v.ChatCount++
 		v.LastChat = uint64(time.Now().Unix())
 		v.LevelDown = uint64(time.Now().Unix())
 		buf, _ := rlp.EncodeToBytes(v)
 		getDb().Put(b.keys(fromQQ), buf, nil)
+		fmt.Println("update finish")
 	}
 }
 
 func (b *Bot) levelUpdate(p *Person) {
-	if p.SecretID > 10 {
+	if p.SecretID > 22 {
 		return
 	}
 
@@ -151,6 +153,8 @@ func (b *Bot) levelUpdate(p *Person) {
 		p.SecretLevel = 99
 	}
 
+	fmt.Println("level:", p.SecretLevel)
+
 	if (uint64(time.Now().Unix()) - p.LevelDown) > 3600*24*7 {
 		if p.SecretLevel >= (uint64(time.Now().Unix())-p.LevelDown)/(3600*24*7) {
 			p.SecretLevel -= (uint64(time.Now().Unix()) - p.LevelDown) / (3600 * 24 * 7)
@@ -164,7 +168,11 @@ func (b *Bot) talkToMe(msg string) bool {
 		return false
 	}
 
-	if strings.Index(msg, "@"+b.Name) != -1 {
+	cp := fmt.Sprintf("CQ:at,qq=%d", b.QQ)
+
+	fmt.Println("talkToMe?", msg, cp)
+
+	if strings.Index(msg, cp) != -1 {
 		return true
 	}
 
@@ -216,7 +224,7 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	var startTime string
 	var lastTime string
 
-	if v.SecretID > 10 {
+	if v.SecretID > 22 {
 		secretName = "普通人"
 	} else {
 		secretName = secretInfo[v.SecretID].SecretName
@@ -249,7 +257,12 @@ func (b *Bot) getSecretList() string {
 	return secretList
 }
 
-func (b *Bot) changeSecretList(msg string, fromQQ uint64) string {
+func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
+	index := strings.Index(msgRaw, "更换")
+	msg := msgRaw[index:]
+	fmt.Println("changeSecretList:", msg, msgRaw)
+	defer fmt.Println("finish changed")
+
 	var valid = regexp.MustCompile("[0-9]")
 	r := valid.FindAllStringSubmatch(msg, -1)
 	if len(r) == 0 || len(r) > 2 {
@@ -272,9 +285,10 @@ func (b *Bot) changeSecretList(msg string, fromQQ uint64) string {
 	verify, _ := getDb().Get(b.keys(fromQQ), nil)
 	var v Person
 	rlp.DecodeBytes(verify, &v)
-	fmt.Printf("%+v", v)
 	v.SecretID = uint64(value - 1)
 	buf, _ := rlp.EncodeToBytes(v)
+	fmt.Printf("%+v", v)
+
 	getDb().Put(b.keys(fromQQ), buf, nil)
 
 	return fmt.Sprintf("成功更换到途径：%d", value)

@@ -7,7 +7,7 @@ import (
 
 //go:generate cqcfg -c .
 // cqp: 名称: SecretMaster
-// cqp: 版本: 0.0.1:1
+// cqp: 版本: 0.0.2:1
 // cqp: 作者: molin
 // cqp: 简介: 一个超棒的Go语言插件Demo，它会回复你的私聊消息~专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
@@ -34,7 +34,9 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 
 	ret := bot.Run(msg, uint64(fromQQ), info.Name)
 
-	cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+	if len(ret) > 0 {
+		cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+	}
 
 	return 0
 }
