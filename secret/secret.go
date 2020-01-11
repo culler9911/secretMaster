@@ -9,6 +9,7 @@ import (
 
 	"github.com/molin0000/secretMaster/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 type Person struct {
@@ -208,7 +209,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	}
 
 	if strings.Contains(msg, botMenu[5]) {
-		return b.getProperty(fromQQ)
+		return b.getRank()
 	}
 
 	return ""
@@ -299,6 +300,14 @@ func (b *Bot) checkQQ(msg string, fromQQ uint64) string {
 }
 
 func (b *Bot) getRank() string {
+	iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+	for iter.Next() {
+		fmt.Printf("key:%+v", iter.Key())
+		fmt.Printf("value:%+v", iter.Value())
+	}
+	iter.Release()
+	err := iter.Error()
+	fmt.Println(err)
 	return "来不及做了，等下一版吧"
 }
 
@@ -318,4 +327,8 @@ func getDb() *leveldb.DB {
 
 func (b *Bot) keys(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
+}
+
+func (b *Bot) getKeyPrefix() []byte {
+	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
 }
