@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
 	"github.com/molin0000/secretMaster/secret"
@@ -11,7 +12,7 @@ import (
 // cqp: 名称: SecretMaster
 // cqp: 版本: 0.0.3:1
 // cqp: 作者: molin
-// cqp: 简介: 一个超棒的Go语言插件Demo，它会回复你的私聊消息~专为诡秘之主粉丝序列群开发的小游戏
+// cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
 
 func init() {
@@ -37,8 +38,11 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 	ret := bot.Run(msg, uint64(fromQQ), info.Name)
 
 	if len(ret) > 0 {
-		fmt.Println("group ret:", cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret))
-		fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
+		fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
+		time.Sleep(1000)
+		id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+		fmt.Printf("\nSend finish id:%d\n", id)
+		// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
 	}
 
 	return 0
