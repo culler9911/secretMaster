@@ -10,7 +10,7 @@ import (
 
 //go:generate cqcfg -c .
 // cqp: 名称: SecretMaster
-// cqp: 版本: 0.3.3:1
+// cqp: 版本: 0.4.4:1
 // cqp: 作者: molin
 // cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
@@ -27,6 +27,12 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 }
 
 func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, msg string, font int32) int32 {
+	defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+		if err := recover(); err != nil {
+			fmt.Println(err) // 这里的err其实就是panic传入的内容
+		}
+	}()
+
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 
 	selfQQ := cqp.GetLoginQQ()

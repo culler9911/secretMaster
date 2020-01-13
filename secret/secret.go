@@ -2,6 +2,7 @@ package secret
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"sort"
 	"strconv"
@@ -57,13 +58,20 @@ type Money struct {
 	Money uint64
 }
 
+type Adventure struct {
+	Group  uint64
+	QQ     uint64
+	DayCnt uint64
+	Days   uint64
+}
+
 var botMenu = [...]string{
 	"帮助",
 	"属性",
 	"途径",
 	"更换",
-	"查询",
 	"排行",
+	"探险",
 }
 
 var secretInfo = [...]SecretInfo{
@@ -111,6 +119,41 @@ func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
 	return b.cmdSwitch(msg, fromQQ)
 }
 
+func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
+	if strings.Contains(msg, botMenu[0]) {
+		return `
+帮助：回复 帮助 可显示帮助信息。
+属性：回复 属性 可查询当前人物的属性信息。
+途径：回复 途径 可查询途径列表。
+更换：回复 更换+途径序号 可更改当前人物的非凡途径。
+排行：回复 排行 可查询当前群内的非凡者排行榜。
+探险：回复 探险 可主动触发每日1次的奇遇探险经历。
+`
+	}
+
+	if strings.Contains(msg, botMenu[1]) {
+		return b.getProperty(fromQQ)
+	}
+
+	if strings.Contains(msg, botMenu[2]) {
+		return b.getSecretList()
+	}
+
+	if strings.Contains(msg, botMenu[3]) {
+		return b.changeSecretList(msg, fromQQ)
+	}
+
+	if strings.Contains(msg, botMenu[4]) {
+		return b.getRank(fromQQ)
+	}
+
+	if strings.Contains(msg, botMenu[5]) {
+		return b.adventure(fromQQ)
+	}
+
+	return ""
+}
+
 func (b *Bot) update(fromQQ uint64, nick string) {
 	key := b.keys(fromQQ)
 	value, err := getDb().Get(key, nil)
@@ -138,6 +181,7 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 		b.levelUpdate(v)
 
 		w := b.getWaterRuleFromDb(fromQQ)
+		m := b.getMoneyFromDb(fromQQ, v.ChatCount)
 
 		if debug {
 			v.ChatCount += 1000
@@ -145,6 +189,7 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 			if w.DayCnt < 200 {
 				v.ChatCount++
 				w.DayCnt++
+				m.Money++
 			}
 		}
 
@@ -152,7 +197,108 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 		v.LevelDown = uint64(time.Now().Unix())
 		b.setPersonToDb(fromQQ, v)
 		b.setWaterRuleToDb(fromQQ, w)
+		b.setMoneyToDb(fromQQ, m)
 	}
+}
+
+func (b *Bot) adventure(fromQQ uint64) string {
+	a := b.getAdvFromDb(fromQQ)
+	if a.DayCnt > 0 {
+		return "对不起，您今日奇遇探险机会已经用完"
+	}
+
+	a.DayCnt++
+	a.Days = uint64(time.Now().Unix() / (3600 * 24))
+	b.setAdvToDb(fromQQ, a)
+
+	rand.Seed(time.Now().UnixNano())
+	i := rand.Intn(20)
+	info := ""
+	m := 0
+	e := 0
+	if i < 1 { // -钱＆经验5%
+		t := rand.Intn(2)
+		m = -1 * (10 + rand.Intn(41))
+		e = -1 * (10 + rand.Intn(41))
+		if t == 0 {
+			info = fmt.Sprintf("在探险过程中遇到危险不得不使用保命物品才得以逃脱，损失惨重。经验:%d, 金钱:%d", e, m)
+		} else {
+			info = fmt.Sprintf("被异教徒盯上并暴力劫掠，损失惨重。经验:%d, 金钱:%d", e, m)
+		}
+	} else if i < 3 { // -经验10%
+		t := rand.Intn(2)
+		m = 0
+		e = -1 * (10 + rand.Intn(41))
+		if t == 0 {
+			info = fmt.Sprintf("由于错误的祷告，被不知名的存在盯上，受到打击。经验:%d", e)
+		} else {
+			info = fmt.Sprintf("在探险过程中用尽了力量不得不返回，灵性枯竭。经验:%d", e)
+		}
+	} else if i < 5 { // -钱10%
+		t := rand.Intn(2)
+		m = -1 * (10 + rand.Intn(41))
+		e = 0
+		if t == 0 {
+			info = fmt.Sprintf("在非凡者聚会上买到假货，该死。金钱:%d", m)
+		} else {
+			info = fmt.Sprintf("交房租的时间到了，老天。金钱:%d", m)
+		}
+	} else if i < 7 { // +钱＆经验10%
+		t := rand.Intn(2)
+		m = (20 + rand.Intn(81))
+		e = (20 + rand.Intn(81))
+		if t == 0 {
+			info = fmt.Sprintf("探索了一座遗迹，了解到一些隐秘的知识并发现了一些财宝。经验:%d, 金钱:%d", e, m)
+		} else {
+			info = fmt.Sprintf("成功打击了一名异教徒，获得了对方的一些物品。经验:%d, 金钱:%d", e, m)
+		}
+	} else if i < 10 { // +钱15%
+		t := rand.Intn(2)
+		m = (20 + rand.Intn(81))
+		e = 0
+		if t == 0 {
+			info = fmt.Sprintf("完成一次非凡任务委托，获得报酬。金钱:%d", m)
+		} else {
+			info = fmt.Sprintf("猎杀了一只凶猛的非凡生物，获得材料。金钱:%d", m)
+		}
+	} else if i < 13 { // 	+经验15%
+		t := rand.Intn(2)
+		m = 0
+		e = (20 + rand.Intn(81))
+		if t == 0 {
+			info = fmt.Sprintf("在一出失落的古堡中发现一本记载了神秘学知识的书籍，获得知识。经验:%d", e)
+		} else {
+			info = fmt.Sprintf("参加非凡者组织的聚会，有幸的到了高阶阅读者的指点，获得知识。经验:%d", e)
+		}
+	} else { // 无事发生35%
+		t := rand.Intn(2)
+		m = 0
+		e = 0
+		if t == 0 {
+			info = "美好的一天，何不来点东拜朗甜姜红茶？"
+		} else {
+			info = "糟糕的一天，并不想出门！"
+		}
+	}
+
+	person := b.getPersonFromDb(fromQQ)
+	_m := b.getMoneyFromDb(fromQQ, person.ChatCount)
+	if m >= 0 {
+		_m.Money += uint64(m)
+	} else {
+		_m.Money -= uint64(-1*m)
+	}
+
+	if e >= 0 {
+		person.ChatCount += uint64(e)
+	} else {
+		person.ChatCount -= uint64(-1*e)
+	}
+
+	b.setPersonToDb(fromQQ, person)
+	b.setMoneyToDb(fromQQ, _m)
+	
+	return info
 }
 
 func (b *Bot) getPersonFromDb(fromQQ uint64) *Person {
@@ -198,6 +344,24 @@ func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
 func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
 	buf, _ := rlp.EncodeToBytes(m)
 	getDb().Put(b.moneyKey(fromQQ), buf, nil)
+}
+
+func (b *Bot) getAdvFromDb(fromQQ uint64) *Adventure {
+	ret, err := getDb().Get(b.advKey(fromQQ), nil)
+	if err != nil {
+		return &Adventure{Group: b.Group, QQ: fromQQ, Days: uint64(time.Now().Unix() / (3600 * 24)), DayCnt: 0}
+	}
+	var m Adventure
+	rlp.DecodeBytes(ret, &m)
+	if m.Days != uint64(time.Now().Unix()/(3600*24)) {
+		m.DayCnt = 0
+	}
+	return &m
+}
+
+func (b *Bot) setAdvToDb(fromQQ uint64, m *Adventure) {
+	buf, _ := rlp.EncodeToBytes(m)
+	getDb().Put(b.advKey(fromQQ), buf, nil)
 }
 
 func (b *Bot) levelUpdate(p *Person) {
@@ -255,40 +419,6 @@ func (b *Bot) talkToMe(msg string) bool {
 	return false
 }
 
-func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
-	if strings.Contains(msg, botMenu[0]) {
-		return `
-帮助：回复 帮助 可显示帮助信息。
-属性：回复 属性 可查询当前人物的属性信息。
-途径：回复 途径 可查询途径列表。
-更换：回复 更换+途径序号 可更改当前人物的非凡途径。
-排行：输入 排行 可查询当前群内的非凡者排行榜。
-`
-	}
-
-	if strings.Contains(msg, botMenu[1]) {
-		return b.getProperty(fromQQ)
-	}
-
-	if strings.Contains(msg, botMenu[2]) {
-		return b.getSecretList()
-	}
-
-	if strings.Contains(msg, botMenu[3]) {
-		return b.changeSecretList(msg, fromQQ)
-	}
-
-	if strings.Contains(msg, botMenu[4]) {
-		return b.checkQQ(msg, fromQQ)
-	}
-
-	if strings.Contains(msg, botMenu[5]) {
-		return b.getRank()
-	}
-
-	return ""
-}
-
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
 	var secretName string
@@ -323,8 +453,8 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	}
 
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 1 {
-		money.Money--
+	if money.Money > 2 {
+		money.Money -= 2
 	}
 	b.setMoneyToDb(fromQQ, money)
 
@@ -374,6 +504,12 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 	v.SecretID = uint64(value - 1)
 	b.setPersonToDb(fromQQ, v)
 
+	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
+	if money.Money > 100 {
+		money.Money -= 100
+	}
+	b.setMoneyToDb(fromQQ, money)
+
 	return fmt.Sprintf("成功更换到途径：%d", value)
 }
 
@@ -381,13 +517,20 @@ func (b *Bot) checkQQ(msg string, fromQQ uint64) string {
 	return "暂不支持"
 }
 
-func (b *Bot) getRank() string {
+func (b *Bot) getRank(fromQQ uint64) string {
 	iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
 	persons := make([]Person, 0)
 	cnt := 0
 	for iter.Next() {
-		fmt.Printf("key:%+v", iter.Key())
+		fmt.Printf("key:%+v", string(iter.Key()))
 		fmt.Printf("value:%+v", iter.Value())
+
+		if strings.Index(string(iter.Key()), "money") != -1 ||
+		 	strings.Index(string(iter.Key()), "adv") != -1 ||
+		 	strings.Index(string(iter.Key()), "water") != -1 {
+			continue
+		} 
+		
 		verify := iter.Value()
 		var v Person
 		rlp.DecodeBytes(verify, &v)
@@ -410,6 +553,14 @@ func (b *Bot) getRank() string {
 			break
 		}
 	}
+
+	v := b.getPersonFromDb(fromQQ)
+	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
+	if money.Money > 2 {
+		money.Money -= 2
+	}
+	b.setMoneyToDb(fromQQ, money)
+
 	return retValue
 }
 
@@ -437,6 +588,10 @@ func (b *Bot) ruleKey(fromQQ uint64) []byte {
 
 func (b *Bot) moneyKey(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_money")
+}
+
+func (b *Bot) advKey(fromQQ uint64) []byte {
+	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_adventure")
 }
 
 func (b *Bot) getKeyPrefix() []byte {
