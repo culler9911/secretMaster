@@ -99,6 +99,36 @@ var secretInfo = [...]SecretInfo{
 	{SecretName: "魔女", SecretLevelName: [10]string{"刺客", "教唆者", "女巫", "欢愉", "痛苦", "绝望", "不老", "灾难", "末日", "原初"}},
 }
 
+var secretGroup = [...][]uint64{
+	{0, 1, 2},
+	{3, 4, 5, 6, 7},
+	{8, 9},
+	{10, 11},
+	{12, 13, 14},
+	{15, 16},
+	{17},
+	{18, 19},
+	{20, 21},
+}
+
+func contains(s []uint64, e uint64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func canConvert(v1, v2 uint64) bool {
+	for _, a := range secretGroup {
+		if contains(a, v1) && contains(a, v2) {
+			return true
+		}
+	}
+	return false
+}
+
 func NewSecretBot(qq, group uint64, groupNick string) *Bot {
 	bot := &Bot{QQ: qq, Group: group, Name: groupNick}
 	return bot
@@ -195,8 +225,8 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
-			if v.ChatCount % 100 == 0 {
-				ret +="\n恭喜！你的战力评价升级了！"
+			if v.ChatCount%100 == 0 {
+				ret += "\n恭喜！你的战力评价升级了！"
 			}
 		}
 
@@ -295,18 +325,18 @@ func (b *Bot) adventure(fromQQ uint64) string {
 	if m >= 0 {
 		_m.Money += uint64(m)
 	} else {
-		_m.Money -= uint64(-1*m)
+		_m.Money -= uint64(-1 * m)
 	}
 
 	if e >= 0 {
 		person.ChatCount += uint64(e)
 	} else {
-		person.ChatCount -= uint64(-1*e)
+		person.ChatCount -= uint64(-1 * e)
 	}
 
 	b.setPersonToDb(fromQQ, person)
 	b.setMoneyToDb(fromQQ, _m)
-	
+
 	return info
 }
 
@@ -406,7 +436,7 @@ func (b *Bot) levelUpdate(p *Person) string {
 
 	if p.SecretLevel != levelOld {
 		ret = "恭喜！你的序列晋升了！"
-	}	
+	}
 
 	fmt.Println("level:", p.SecretLevel)
 
@@ -522,6 +552,10 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 		return "很抱歉，在您到达序列4之前，无法再次转换途径"
 	}
 
+	if v.SecretID != 99 && !canConvert(v.SecretID, uint64(value-1)) {
+		return "很抱歉，非凡者只能在相近途径互相转换"
+	}
+
 	v.SecretID = uint64(value - 1)
 	b.setPersonToDb(fromQQ, v)
 
@@ -547,11 +581,11 @@ func (b *Bot) getRank(fromQQ uint64) string {
 		fmt.Printf("value:%+v", iter.Value())
 
 		if strings.Index(string(iter.Key()), "money") != -1 ||
-		 	strings.Index(string(iter.Key()), "adv") != -1 ||
-		 	strings.Index(string(iter.Key()), "water") != -1 {
+			strings.Index(string(iter.Key()), "adv") != -1 ||
+			strings.Index(string(iter.Key()), "water") != -1 {
 			continue
-		} 
-		
+		}
+
 		verify := iter.Value()
 		var v Person
 		rlp.DecodeBytes(verify, &v)
