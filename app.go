@@ -41,7 +41,23 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 
 	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
 
-	ret := bot.Run(msg, uint64(fromQQ), info.Name)
+	ret := ""
+	if len(msg) > 9 {
+		fmt.Println(msg, "大于3", len(msg))
+		ret = bot.Update(uint64(fromQQ), info.Name)
+	} else {
+		fmt.Println(msg, "小于3", len(msg))
+	}
+
+	if len(ret) > 0 {
+		fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
+		time.Sleep(1000)
+		id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+		fmt.Printf("\nSend finish id:%d\n", id)
+		// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
+	}
+
+	ret = bot.Run(msg, uint64(fromQQ), info.Name)
 
 	if len(ret) > 0 {
 		fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)

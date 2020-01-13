@@ -105,13 +105,6 @@ func NewSecretBot(qq, group uint64, groupNick string) *Bot {
 }
 
 func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
-	if len(msg) > 9 {
-		fmt.Println(msg, "大于3", len(msg))
-		b.update(fromQQ, nick)
-	} else {
-		fmt.Println(msg, "小于3", len(msg))
-	}
-
 	if !b.talkToMe(msg) {
 		return ""
 	}
@@ -151,14 +144,28 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		return b.adventure(fromQQ)
 	}
 
+	if strings.Contains(msg, "删除人物") {
+		return b.deletePerson(fromQQ)
+	}
+
 	return ""
 }
 
-func (b *Bot) update(fromQQ uint64, nick string) {
+func (b *Bot) deletePerson(fromQQ uint64) string {
+	getDb().Delete(b.keys(fromQQ), nil)
+	getDb().Delete(b.ruleKey(fromQQ), nil)
+	getDb().Delete(b.moneyKey(fromQQ), nil)
+	getDb().Delete(b.advKey(fromQQ), nil)
+
+	return "人物删除成功"
+}
+
+func (b *Bot) Update(fromQQ uint64, nick string) string {
 	key := b.keys(fromQQ)
 	value, err := getDb().Get(key, nil)
 	fmt.Println("value:", value)
 	fmt.Println("err:", err)
+	ret := ""
 	if err != nil {
 		if err.Error() == "leveldb: not found" {
 			fmt.Println("a new man.")
@@ -178,18 +185,18 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 		}
 	} else {
 		v := b.getPersonFromDb(fromQQ)
-		b.levelUpdate(v)
+
+		ret = b.levelUpdate(v)
 
 		w := b.getWaterRuleFromDb(fromQQ)
 		m := b.getMoneyFromDb(fromQQ, v.ChatCount)
 
-		if debug {
-			v.ChatCount += 1000
-		} else {
-			if w.DayCnt < 200 {
-				v.ChatCount++
-				w.DayCnt++
-				m.Money++
+		if w.DayCnt < 200 {
+			v.ChatCount++
+			w.DayCnt++
+			m.Money++
+			if v.ChatCount % 100 == 0 {
+				ret +="\n恭喜！你的战力评价升级了！"
 			}
 		}
 
@@ -199,6 +206,8 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 		b.setWaterRuleToDb(fromQQ, w)
 		b.setMoneyToDb(fromQQ, m)
 	}
+
+	return ret
 }
 
 func (b *Bot) adventure(fromQQ uint64) string {
@@ -364,11 +373,13 @@ func (b *Bot) setAdvToDb(fromQQ uint64, m *Adventure) {
 	getDb().Put(b.advKey(fromQQ), buf, nil)
 }
 
-func (b *Bot) levelUpdate(p *Person) {
+func (b *Bot) levelUpdate(p *Person) string {
 	if p.SecretID > 22 {
-		return
+		return ""
 	}
 
+	ret := ""
+	levelOld := p.SecretLevel
 	if p.ChatCount > 10000 {
 		p.SecretLevel = 9
 	} else if p.ChatCount > 8000 {
@@ -393,6 +404,10 @@ func (b *Bot) levelUpdate(p *Person) {
 		p.SecretLevel = 99
 	}
 
+	if p.SecretLevel != levelOld {
+		ret = "恭喜！你的序列晋升了！"
+	}	
+
 	fmt.Println("level:", p.SecretLevel)
 
 	if (uint64(time.Now().Unix()) - p.LevelDown) > 3600*24*7 {
@@ -401,6 +416,8 @@ func (b *Bot) levelUpdate(p *Person) {
 		}
 		p.LevelDown = uint64(time.Now().Unix())
 	}
+
+	return ret
 }
 
 func (b *Bot) talkToMe(msg string) bool {
