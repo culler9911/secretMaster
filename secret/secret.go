@@ -182,6 +182,12 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 }
 
 func (b *Bot) deletePerson(fromQQ uint64) string {
+	p := b.getPersonFromDb(fromQQ)
+
+	if b.getGodFromDb(p.SecretID) == p.QQ {
+		getDb().Delete(b.godKey(p.SecretID), nil)
+	}
+
 	getDb().Delete(b.keys(fromQQ), nil)
 	getDb().Delete(b.ruleKey(fromQQ), nil)
 	getDb().Delete(b.moneyKey(fromQQ), nil)
@@ -403,6 +409,21 @@ func (b *Bot) setAdvToDb(fromQQ uint64, m *Adventure) {
 	getDb().Put(b.advKey(fromQQ), buf, nil)
 }
 
+func (b *Bot) getGodFromDb(secretID uint64) uint64 {
+	ret, err := getDb().Get(b.godKey(secretID), nil)
+	if err != nil {
+		return 0
+	}
+	var god uint64
+	rlp.DecodeBytes(ret, &god)
+	return god
+}
+
+func (b *Bot) setGodToDb(secretID uint64, god *uint64) {
+	buf, _ := rlp.EncodeToBytes(god)
+	getDb().Put(b.godKey(secretID), buf, nil)
+}
+
 func (b *Bot) levelUpdate(p *Person) string {
 	if p.SecretID > 22 {
 		return ""
@@ -410,10 +431,16 @@ func (b *Bot) levelUpdate(p *Person) string {
 
 	ret := ""
 	levelOld := p.SecretLevel
+	god := b.getGodFromDb(p.SecretID)
 	if p.ChatCount > 10000 {
-		p.SecretLevel = 9
+		if god == 0 || god == p.QQ {
+			b.setGodToDb(p.SecretID, &p.QQ)
+			p.SecretLevel = 9
+		}
 	} else if p.ChatCount > 8000 {
-		p.SecretLevel = 8
+		if god == 0 {
+			p.SecretLevel = 8
+		}
 	} else if p.ChatCount > 5500 {
 		p.SecretLevel = 7
 	} else if p.ChatCount > 3000 {
@@ -647,6 +674,10 @@ func (b *Bot) moneyKey(fromQQ uint64) []byte {
 
 func (b *Bot) advKey(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_adventure")
+}
+
+func (b *Bot) godKey(secretID uint64) []byte {
+	return []byte("god_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(secretID), 10))
 }
 
 func (b *Bot) getKeyPrefix() []byte {
