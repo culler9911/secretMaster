@@ -518,6 +518,10 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 	}
 
 	v := b.getPersonFromDb(fromQQ)
+	if v.SecretLevel < 5 {
+		return "很抱歉，在您到达序列4之前，无法再次转换途径"
+	}
+
 	v.SecretID = uint64(value - 1)
 	b.setPersonToDb(fromQQ, v)
 
