@@ -151,6 +151,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 更换：回复 更换+途径序号 可更改当前人物的非凡途径。
 排行：回复 排行 可查询当前群内的非凡者排行榜。
 探险：回复 探险 可主动触发每日1次的奇遇探险经历。
+其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md
 `
 	}
 
