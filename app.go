@@ -10,7 +10,7 @@ import (
 
 //go:generate cqcfg -c .
 // cqp: 名称: SecretMaster
-// cqp: 版本: 0.0.3:1
+// cqp: 版本: 0.3.3:1
 // cqp: 作者: molin
 // cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }

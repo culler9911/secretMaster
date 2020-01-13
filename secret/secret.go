@@ -3,6 +3,7 @@ package secret
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
+
+var debug = false
 
 type Person struct {
 	Group       uint64
@@ -24,6 +27,12 @@ type Person struct {
 	ChatCount   uint64
 }
 
+type Persons []Person
+
+func (a Persons) Len() int           { return len(a) }
+func (a Persons) Less(i, j int) bool { return a[i].ChatCount > a[j].ChatCount }
+func (a Persons) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
 type SecretInfo struct {
 	SecretName      string
 	SecretLevelName [10]string
@@ -33,6 +42,19 @@ type Bot struct {
 	QQ    uint64
 	Group uint64
 	Name  string
+}
+
+type WaterRule struct {
+	Group  uint64
+	QQ     uint64
+	DayCnt uint64
+	Days   uint64
+}
+
+type Money struct {
+	Group uint64
+	QQ    uint64
+	Money uint64
 }
 
 var botMenu = [...]string{
@@ -75,10 +97,17 @@ func NewSecretBot(qq, group uint64, groupNick string) *Bot {
 }
 
 func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
-	b.update(fromQQ, nick)
+	if len(msg) > 9 {
+		fmt.Println(msg, "大于3", len(msg))
+		b.update(fromQQ, nick)
+	} else {
+		fmt.Println(msg, "小于3", len(msg))
+	}
+
 	if !b.talkToMe(msg) {
 		return ""
 	}
+
 	return b.cmdSwitch(msg, fromQQ)
 }
 
@@ -102,27 +131,73 @@ func (b *Bot) update(fromQQ uint64, nick string) {
 				ChatCount:   1,
 			}
 
-			buf, _ := rlp.EncodeToBytes(p)
-			getDb().Put(b.keys(fromQQ), buf, nil)
-			verify, _ := getDb().Get(b.keys(fromQQ), nil)
-			var v Person
-			rlp.DecodeBytes(verify, &v)
-			fmt.Printf("%+v", v)
+			b.setPersonToDb(fromQQ, p)
 		}
 	} else {
-		verify, _ := getDb().Get(b.keys(fromQQ), nil)
-		var v Person
-		rlp.DecodeBytes(verify, &v)
-		fmt.Printf("before level:%+v", v)
-		b.levelUpdate(&v)
-		fmt.Printf("after level:%+v", v)
-		v.ChatCount++
+		v := b.getPersonFromDb(fromQQ)
+		b.levelUpdate(v)
+
+		w := b.getWaterRuleFromDb(fromQQ)
+
+		if debug {
+			v.ChatCount += 1000
+		} else {
+			if w.DayCnt < 200 {
+				v.ChatCount++
+				w.DayCnt++
+			}
+		}
+
 		v.LastChat = uint64(time.Now().Unix())
 		v.LevelDown = uint64(time.Now().Unix())
-		buf, _ := rlp.EncodeToBytes(v)
-		getDb().Put(b.keys(fromQQ), buf, nil)
-		fmt.Println("update finish")
+		b.setPersonToDb(fromQQ, v)
+		b.setWaterRuleToDb(fromQQ, w)
 	}
+}
+
+func (b *Bot) getPersonFromDb(fromQQ uint64) *Person {
+	verify, _ := getDb().Get(b.keys(fromQQ), nil)
+	var v Person
+	rlp.DecodeBytes(verify, &v)
+	return &v
+}
+
+func (b *Bot) setPersonToDb(fromQQ uint64, p *Person) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.keys(fromQQ), buf, nil)
+}
+
+func (b *Bot) getWaterRuleFromDb(fromQQ uint64) *WaterRule {
+	ret, err := getDb().Get(b.ruleKey(fromQQ), nil)
+	if err != nil {
+		return &WaterRule{Group: b.Group, QQ: fromQQ, DayCnt: 1, Days: uint64(time.Now().Unix() / (3600 * 24))}
+	}
+	var w WaterRule
+	rlp.DecodeBytes(ret, &w)
+	if w.Days != uint64(time.Now().Unix()/(3600*24)) {
+		w.DayCnt = 0
+	}
+	return &w
+}
+
+func (b *Bot) setWaterRuleToDb(fromQQ uint64, w *WaterRule) {
+	buf, _ := rlp.EncodeToBytes(w)
+	getDb().Put(b.ruleKey(fromQQ), buf, nil)
+}
+
+func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
+	ret, err := getDb().Get(b.moneyKey(fromQQ), nil)
+	if err != nil {
+		return &Money{Group: b.Group, QQ: fromQQ, Money: chatCnt}
+	}
+	var m Money
+	rlp.DecodeBytes(ret, &m)
+	return &m
+}
+
+func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
+	buf, _ := rlp.EncodeToBytes(m)
+	getDb().Put(b.moneyKey(fromQQ), buf, nil)
 }
 
 func (b *Bot) levelUpdate(p *Person) {
@@ -187,7 +262,6 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 属性：回复 属性 可查询当前人物的属性信息。
 途径：回复 途径 可查询途径列表。
 更换：回复 更换+途径序号 可更改当前人物的非凡途径。
-查询：输入 查询 + QQ号码 可查询指定人员的属性信息。
 排行：输入 排行 可查询当前群内的非凡者排行榜。
 `
 	}
@@ -216,14 +290,10 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 }
 
 func (b *Bot) getProperty(fromQQ uint64) string {
-	verify, _ := getDb().Get(b.keys(fromQQ), nil)
-	var v Person
-	rlp.DecodeBytes(verify, &v)
-	fmt.Printf("%+v", v)
+	v := b.getPersonFromDb(fromQQ)
 	var secretName string
 	var secretLevelName string
 	var startTime string
-	var lastTime string
 
 	if v.SecretID > 22 {
 		secretName = "普通人"
@@ -238,11 +308,28 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		// secretLevelName = fmt.Sprintf("序列%d", 9-v.SecretLevel)
 	}
 
-	startTime = time.Unix(int64(v.JoinTime), 0).Format("2006-01-02 15:04:05")
-	lastTime = time.Unix(int64(v.LastChat), 0).Format("2006-01-02 15:04:05")
+	startTime = fmt.Sprintf("%d小时", (time.Now().Unix()-time.Unix(int64(v.JoinTime), 0).Unix())/3600)
+	// startTime = time.Unix(int64(v.JoinTime), 0).Format("2006-01-02 15:04:05")
 
-	info := fmt.Sprintf("\n尊名：%s\n途径：%s\n序列：%s\n经验：%d\n修炼开始时间：%s\n最近修炼时间：%s\n技能：%s\n",
-		v.Name, secretName, secretLevelName, v.ChatCount, startTime, lastTime, "无")
+	myFightIndex := v.ChatCount / 100
+	reLive := uint64(0)
+	sReLive := ""
+	if myFightIndex > 99 {
+		myFightIndex = v.ChatCount / 100 % 100
+		reLive = v.ChatCount / uint64(10000)
+		if reLive > 0 {
+			sReLive = fmt.Sprintf("(转生+%d)", reLive)
+		}
+	}
+
+	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
+	if money.Money > 1 {
+		money.Money--
+	}
+	b.setMoneyToDb(fromQQ, money)
+
+	info := fmt.Sprintf("\n尊名：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n修炼时间：%s\n战力评价：%s%s\n",
+		v.Name, secretName, secretLevelName, v.ChatCount, money.Money, startTime, fight[myFightIndex], sReLive)
 
 	fmt.Print(info)
 	return info
@@ -283,14 +370,9 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 		return "数值无效"
 	}
 
-	verify, _ := getDb().Get(b.keys(fromQQ), nil)
-	var v Person
-	rlp.DecodeBytes(verify, &v)
+	v := b.getPersonFromDb(fromQQ)
 	v.SecretID = uint64(value - 1)
-	buf, _ := rlp.EncodeToBytes(v)
-	fmt.Printf("%+v", v)
-
-	getDb().Put(b.keys(fromQQ), buf, nil)
+	b.setPersonToDb(fromQQ, v)
 
 	return fmt.Sprintf("成功更换到途径：%d", value)
 }
@@ -301,14 +383,34 @@ func (b *Bot) checkQQ(msg string, fromQQ uint64) string {
 
 func (b *Bot) getRank() string {
 	iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+	persons := make([]Person, 0)
+	cnt := 0
 	for iter.Next() {
 		fmt.Printf("key:%+v", iter.Key())
 		fmt.Printf("value:%+v", iter.Value())
+		verify := iter.Value()
+		var v Person
+		rlp.DecodeBytes(verify, &v)
+		fmt.Printf("%+v", v)
+		persons = append(persons, v)
 	}
 	iter.Release()
 	err := iter.Error()
 	fmt.Println(err)
-	return "来不及做了，等下一版吧"
+
+	retValue := ""
+
+	sort.Sort(Persons(persons))
+
+	for i := 0; i < len(persons); i++ {
+		v := persons[i]
+		retValue = fmt.Sprintf("%s\n第%d名：%s，经验：%d", retValue, i+1, v.Name, v.ChatCount)
+		cnt++
+		if cnt > 30 {
+			break
+		}
+	}
+	return retValue
 }
 
 var db *leveldb.DB
@@ -329,6 +431,117 @@ func (b *Bot) keys(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
 }
 
+func (b *Bot) ruleKey(fromQQ uint64) []byte {
+	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_water")
+}
+
+func (b *Bot) moneyKey(fromQQ uint64) []byte {
+	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_money")
+}
+
 func (b *Bot) getKeyPrefix() []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
+}
+
+var fight = [...]string{
+	"不堪一击",
+	"毫不足虑",
+	"不足挂齿",
+	"初学乍练",
+	"勉勉强强",
+	"初窥门径",
+	"初出茅庐",
+	"略知一二",
+	"普普通通",
+	"平平常常",
+	"平淡无奇",
+	"粗懂皮毛",
+	"半生不熟",
+	"登堂入室",
+	"略有小成",
+	"已有小成",
+	"鹤立鸡群",
+	"驾轻就熟",
+	"青出於蓝",
+	"融会贯通",
+	"心领神会",
+	"炉火纯青",
+	"了然於胸",
+	"波澜不惊",
+	"略有大成",
+	"已有大成",
+	"豁然贯通",
+	"不同凡响",
+	"非比寻常",
+	"出类拔萃",
+	"罕有敌手",
+	"波澜老成",
+	"冠绝一时",
+	"锐不可当",
+	"断蛟伏虎",
+	"百战不殆",
+	"技冠群雄",
+	"超群绝伦",
+	"神乎其技",
+	"出神入化",
+	"傲视群雄",
+	"超尘拔俗",
+	"无出其右",
+	"登峰造极",
+	"无与伦比",
+	"靡坚不摧",
+	"所向披靡",
+	"一代宗师",
+	"世外高人",
+	"精深奥妙",
+	"神功盖世",
+	"望而生遁",
+	"勇冠三军",
+	"横扫千军",
+	"万敌莫开",
+	"举世无双",
+	"独步天下",
+	"指点江山",
+	"惊世骇俗",
+	"撼天动地",
+	"震古铄今",
+	"亘古一人",
+	"席卷八荒",
+	"超凡入圣",
+	"威镇寰宇",
+	"空前绝后",
+	"天人合一",
+	"深藏不露",
+	"深不可测",
+	"高深莫测",
+	"岿然如峰",
+	"势如破竹",
+	"势涌彪发",
+	"叱咤喑呜",
+	"跌宕昭彰",
+	"拿云攫石",
+	"摧朽拉枯",
+	"鹰撮霆击",
+	"鳌掷鲸吞",
+	"潮鸣电掣",
+	"风云变色",
+	"风行雷厉",
+	"拔山举鼎",
+	"山呼海啸",
+	"回山倒海",
+	"倒峡泻河",
+	"熏天赫地",
+	"拔地参天",
+	"万仞之巅",
+	"气贯长虹",
+	"气吞山河",
+	"欺霜傲雪",
+	"立海垂云",
+	"移山竭海",
+	"凤翥龙翔",
+	"摘星逐月",
+	"气凌霄汉",
+	"扭转乾坤",
+	"洗尽铅华",
+	"返璞归真",
 }
