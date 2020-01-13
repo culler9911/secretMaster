@@ -248,7 +248,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 
 func (b *Bot) adventure(fromQQ uint64) string {
 	a := b.getAdvFromDb(fromQQ)
-	if a.DayCnt > 0 {
+	if a.DayCnt >= 3 {
 		return "对不起，您今日奇遇探险机会已经用完"
 	}
 
@@ -331,13 +331,21 @@ func (b *Bot) adventure(fromQQ uint64) string {
 	if m >= 0 {
 		_m.Money += uint64(m)
 	} else {
-		_m.Money -= uint64(-1 * m)
+		if _m.Money > uint64(-1*m) {
+			_m.Money -= uint64(-1 * m)
+		} else {
+			_m.Money = 0
+		}
 	}
 
 	if e >= 0 {
 		person.ChatCount += uint64(e)
 	} else {
-		person.ChatCount -= uint64(-1 * e)
+		if person.ChatCount > uint64(-1*e) {
+			person.ChatCount -= uint64(-1 * e)
+		} else {
+			person.ChatCount = 0
+		}
 	}
 
 	b.setPersonToDb(fromQQ, person)
