@@ -19,6 +19,8 @@ func init() {
 	cqp.AppID = "me.cqp.molin.secretmaster" // TODO: 修改为这个插件的ID
 	cqp.PrivateMsg = onPrivateMsg
 	cqp.GroupMsg = onGroupMsg
+
+	// secret.TickerInit()
 }
 
 func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) int32 {
@@ -32,40 +34,37 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 			fmt.Println(err) // 这里的err其实就是panic传入的内容
 		}
 	}()
-
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
-
 	selfQQ := cqp.GetLoginQQ()
-
 	selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
-
 	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
-
 	ret := ""
-	if len(msg) > 9 {
-		fmt.Println(msg, "大于3", len(msg))
-		ret = bot.Update(uint64(fromQQ), info.Name)
-	} else {
-		fmt.Println(msg, "小于3", len(msg))
+
+	send := func() {
+		if len(ret) > 0 {
+			fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
+			time.Sleep(1000)
+			id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+			fmt.Printf("\nSend finish id:%d\n", id)
+			// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
+		}
 	}
 
-	if len(ret) > 0 {
-		fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
-		time.Sleep(1000)
-		id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
-		fmt.Printf("\nSend finish id:%d\n", id)
-		// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
+	update := func() {
+		if len(msg) > 9 {
+			fmt.Println(msg, "大于3", len(msg))
+			ret = bot.Update(uint64(fromQQ), info.Name)
+		} else {
+			fmt.Println(msg, "小于3", len(msg))
+		}
 	}
 
+	update()
+	send()
+	// ret = secret.TickerProc()
+	// send()
 	ret = bot.Run(msg, uint64(fromQQ), info.Name)
-
-	if len(ret) > 0 {
-		fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
-		time.Sleep(1000)
-		id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
-		fmt.Printf("\nSend finish id:%d\n", id)
-		// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
-	}
+	send()
 
 	return 0
 }

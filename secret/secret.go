@@ -129,8 +129,18 @@ func canConvert(v1, v2 uint64) bool {
 	return false
 }
 
+var botMap map[uint64]*Bot
+
 func NewSecretBot(qq, group uint64, groupNick string) *Bot {
-	bot := &Bot{QQ: qq, Group: group, Name: groupNick}
+	if botMap == nil {
+		botMap = make(map[uint64]*Bot)
+	}
+	bot, ok := botMap[group]
+	if ok {
+		return bot
+	}
+	bot = &Bot{QQ: qq, Group: group, Name: groupNick}
+	botMap[group] = bot
 	return bot
 }
 
@@ -150,9 +160,15 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 途径：回复 途径 可查询途径列表。
 更换：回复 更换+途径序号 可更改当前人物的非凡途径。
 排行：回复 排行 可查询当前群内的非凡者排行榜。
-探险：回复 探险 可主动触发每日1次的奇遇探险经历。
+探险：回复 探险 可主动触发每日3次的奇遇探险经历。
+删除人物：删除当前全部经验和属性，重新创建人物。
+购买探险卷轴：花费100金镑购买1次探险机会。
 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md
 `
+	}
+
+	if strings.Contains(msg, "购买探险卷轴") {
+		return b.adventure(fromQQ, false)
 	}
 
 	if strings.Contains(msg, botMenu[1]) {
@@ -172,7 +188,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	}
 
 	if strings.Contains(msg, botMenu[5]) {
-		return b.adventure(fromQQ)
+		return b.adventure(fromQQ, true)
 	}
 
 	if strings.Contains(msg, "删除人物") {
@@ -247,9 +263,9 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 	return ret
 }
 
-func (b *Bot) adventure(fromQQ uint64) string {
+func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	a := b.getAdvFromDb(fromQQ)
-	if a.DayCnt >= 3 {
+	if limit && a.DayCnt >= 3 {
 		return "对不起，您今日奇遇探险机会已经用完"
 	}
 
@@ -329,6 +345,15 @@ func (b *Bot) adventure(fromQQ uint64) string {
 
 	person := b.getPersonFromDb(fromQQ)
 	_m := b.getMoneyFromDb(fromQQ, person.ChatCount)
+
+	if !limit {
+		if _m.Money > 100 {
+			_m.Money -= 100
+		} else {
+			return "钱包空空，买不起了哦"
+		}
+	}
+
 	if m >= 0 {
 		_m.Money += uint64(m)
 	} else {
@@ -691,6 +716,50 @@ func (b *Bot) godKey(secretID uint64) []byte {
 
 func (b *Bot) getKeyPrefix() []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
+}
+
+var eventChan chan string
+
+func TickerInit() {
+	fmt.Println("Ticker init")
+	eventChan = make(chan string, 100)
+	t := time.NewTicker(time.Minute)
+	ticker := func() {
+		fmt.Println("Ticker reached", time.Now())
+		timeNow := time.Now()
+		hour, min, _ := timeNow.Clock()
+		fmt.Println(hour, min)
+		if hour == 8 && min == 30 {
+			eventChan <- "GoodMorning"
+		}
+
+		if hour == 0 && min == 16 {
+			eventChan <- "GoodEvening"
+		}
+	}
+	go func() {
+		for {
+			select {
+			case <-t.C:
+				ticker()
+			}
+		}
+	}()
+}
+
+func TickerProc() string {
+	select {
+	case e := <-eventChan:
+		fmt.Println(e)
+		if e == "GoodMorning" {
+			return "宝贝们早上好呀~已经8点30分了哦~早安~喵"
+		}
+
+		if e == "GoodEvening" {
+			return "宝贝们很晚啦~已经23点整了哦~早点休息呀~晚安~喵"
+		}
+	}
+	return ""
 }
 
 var fight = [...]string{

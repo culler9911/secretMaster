@@ -57,3 +57,17 @@ func TestSprinf(t *testing.T) {
 	fmt.Println(a, err)
 
 }
+
+func TestGoRoute(t *testing.T) {
+	var eCh chan string
+	eCh = make(chan string, 100)
+	// eCh <- "hello"
+	select {
+	case v := <-eCh:
+		fmt.Println(v)
+	default:
+		fmt.Println("default")
+	}
+
+	fmt.Println("Finish")
+}
