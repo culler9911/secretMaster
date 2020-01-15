@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,6 +60,12 @@ func TestSprinf(t *testing.T) {
 }
 
 func TestGoRoute(t *testing.T) {
+
+	a := "sdfadsfadsfadf尊名摸摸摸摸摸"
+
+	b := a[strings.Index(a, "尊名")+len("尊名"):]
+	fmt.Println(b)
+
 	var eCh chan string
 	eCh = make(chan string, 100)
 	// eCh <- "hello"

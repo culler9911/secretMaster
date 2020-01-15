@@ -65,6 +65,12 @@ type Adventure struct {
 	Days   uint64
 }
 
+type RespectName struct {
+	Group uint64
+	QQ    uint64
+	Name  string
+}
+
 var botMenu = [...]string{
 	"帮助",
 	"属性",
@@ -163,6 +169,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 探险：回复 探险 可主动触发每日3次的奇遇探险经历。
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
+尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md
 `
 	}
@@ -195,7 +202,25 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		return b.deletePerson(fromQQ)
 	}
 
+	if strings.Contains(msg, "尊名") {
+		return b.setRespectName(msg, fromQQ)
+	}
+
 	return ""
+}
+
+func (b *Bot) setRespectName(msg string, fromQQ uint64) string {
+	p := b.getPersonFromDb(fromQQ)
+
+	if p.SecretLevel < 6 || p.SecretLevel > 10 {
+		return "只有序列3以上才可拥有尊名，因为随便的尊名可能会引起高位存在的注意"
+	}
+
+	rname := msg[strings.Index(msg, "尊名")+len("尊名"):]
+
+	b.setRNameToDb(fromQQ, &RespectName{Group: b.Group, QQ: fromQQ, Name: rname})
+
+	return "成功设置尊名"
 }
 
 func (b *Bot) deletePerson(fromQQ uint64) string {
@@ -458,6 +483,21 @@ func (b *Bot) setGodToDb(secretID uint64, god *uint64) {
 	getDb().Put(b.godKey(secretID), buf, nil)
 }
 
+func (b *Bot) setRNameToDb(fromQQ uint64, r *RespectName) {
+	buf, _ := rlp.EncodeToBytes(r)
+	getDb().Put(b.rnameKey(fromQQ), buf, nil)
+}
+
+func (b *Bot) getRNameFromDb(fromQQ uint64) string {
+	ret, err := getDb().Get(b.rnameKey(fromQQ), nil)
+	if err != nil {
+		return "无"
+	}
+	var god RespectName
+	rlp.DecodeBytes(ret, &god)
+	return "\n" + god.Name
+}
+
 func (b *Bot) levelUpdate(p *Person) string {
 	if p.SecretID > 22 {
 		return ""
@@ -566,8 +606,11 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	}
 	b.setMoneyToDb(fromQQ, money)
 
-	info := fmt.Sprintf("\n尊名：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n修炼时间：%s\n战力评价：%s%s\n",
-		v.Name, secretName, secretLevelName, v.ChatCount, money.Money, startTime, fight[myFightIndex], sReLive)
+	info := fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
+		startTime, fight[myFightIndex], sReLive,
+		b.getRNameFromDb(fromQQ),
+	)
 
 	fmt.Print(info)
 	return info
@@ -712,6 +755,10 @@ func (b *Bot) advKey(fromQQ uint64) []byte {
 
 func (b *Bot) godKey(secretID uint64) []byte {
 	return []byte("god_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(secretID), 10))
+}
+
+func (b *Bot) rnameKey(fromQQ uint64) []byte {
+	return []byte("rname_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
 }
 
 func (b *Bot) getKeyPrefix() []byte {
