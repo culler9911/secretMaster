@@ -36,6 +36,30 @@ func TestRlp(t *testing.T) {
 
 	fmt.Printf("%+v", a)
 	fmt.Println(err)
+
+	type test1 struct {
+		Age  uint64
+		Name string
+	}
+
+	c := &test1{
+		Age:  1000,
+		Name: "molin",
+	}
+
+	buf, _ = rlp.EncodeToBytes(c)
+
+	type test2 struct {
+		Age   uint64
+		Name  string
+		Luck  uint64
+		HP    uint64
+		Name2 string
+	}
+
+	var d test2
+	rlp.DecodeBytes(buf, &d)
+	fmt.Printf("%+v", d)
 }
 
 func TestTime(t *testing.T) {

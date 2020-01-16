@@ -10,112 +10,8 @@ import (
 	"time"
 
 	"github.com/molin0000/secretMaster/rlp"
-	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
-
-var debug = false
-
-type Person struct {
-	Group       uint64
-	QQ          uint64
-	Name        string
-	JoinTime    uint64
-	LastChat    uint64
-	LevelDown   uint64
-	SecretID    uint64
-	SecretLevel uint64
-	ChatCount   uint64
-}
-
-type Persons []Person
-
-func (a Persons) Len() int           { return len(a) }
-func (a Persons) Less(i, j int) bool { return a[i].ChatCount > a[j].ChatCount }
-func (a Persons) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-
-type SecretInfo struct {
-	SecretName      string
-	SecretLevelName [10]string
-}
-
-type Bot struct {
-	QQ    uint64
-	Group uint64
-	Name  string
-}
-
-type WaterRule struct {
-	Group  uint64
-	QQ     uint64
-	DayCnt uint64
-	Days   uint64
-}
-
-type Money struct {
-	Group uint64
-	QQ    uint64
-	Money uint64
-}
-
-type Adventure struct {
-	Group  uint64
-	QQ     uint64
-	DayCnt uint64
-	Days   uint64
-}
-
-type RespectName struct {
-	Group uint64
-	QQ    uint64
-	Name  string
-}
-
-var botMenu = [...]string{
-	"帮助",
-	"属性",
-	"途径",
-	"更换",
-	"排行",
-	"探险",
-}
-
-var secretInfo = [...]SecretInfo{
-	{SecretName: "黑夜", SecretLevelName: [10]string{"不眠者", "午夜诗人", "梦魇", "安魂师", "灵巫", "守夜人", "恐惧主教", "隐秘之仆", "未知", "黑夜"}},
-	{SecretName: "死神", SecretLevelName: [10]string{"收尸人", "掘墓人", "通灵者", "死灵导师", "看门人", "不死者", "摆渡人", "死亡执政官", "未知", "死神"}},
-	{SecretName: "战神", SecretLevelName: [10]string{"战士", "格斗家", "武器大师", "黎明骑士", "守护者", "猎魔人", "银骑士", "未知", "未知", "战神"}},
-	{SecretName: "暗", SecretLevelName: [10]string{"秘祈人", "倾听者", "隐修士", "蔷薇主教", "牧羊人", "黑骑士", "三首圣堂", "未知", "未知", "未知"}},
-	{SecretName: "心灵", SecretLevelName: [10]string{"观众", "读心者", "心理医生", "催眠师", "梦境行者", "操纵师", "织梦者", "洞察者", "作家", "空想家"}},
-	{SecretName: "风暴", SecretLevelName: [10]string{"水手", "暴怒之民", "航海家", "风眷者", "海洋歌者", "灾难主祭", "海王", "天灾", "雷神", "暴君"}},
-	{SecretName: "智慧", SecretLevelName: [10]string{"阅读者", "未知", "侦探", "博学者", "秘术导师", "预言家", "未知", "未知", "未知", "未知"}},
-	{SecretName: "太阳", SecretLevelName: [10]string{"歌颂者", "祈光人", "太阳神官", "公证人", "光之祭司", "无暗者", "正义导师", "逐光者", "未知", "太阳"}},
-	{SecretName: "异种", SecretLevelName: [10]string{"囚犯", "疯子", "狼人", "活尸", "怨灵", "木偶", "沉默门徒", "古代邪物", "神孽", "未知"}},
-	{SecretName: "深渊", SecretLevelName: [10]string{"罪犯", "冷血者", "连环杀手", "恶魔", "欲望使徒", "魔鬼", "呓语者", "未知", "未知", "深渊"}},
-	{SecretName: "秘密", SecretLevelName: [10]string{"窥秘人", "格斗教授", "巫师", "卷轴教授", "星象师", "神秘学者", "预言大师", "贤者", "知识皇帝", "未知"}},
-	{SecretName: "工匠", SecretLevelName: [10]string{"通识者", "考古学家", "鉴定师", "机械专家", "天文学家", "炼金术士", "奥秘学者", "未知", "未知", "未知"}},
-	{SecretName: "愚者", SecretLevelName: [10]string{"占卜家", "小丑", "魔法师", "无面人", "秘偶大师", "诡法师", "古代学者", "奇迹师", "诡秘侍者", "愚者"}},
-	{SecretName: "门", SecretLevelName: [10]string{"学徒", "戏法大师", "占星人", "记录官", "旅行家", "秘法师", "漫游者", "旅法师", "星之匙", "未知"}},
-	{SecretName: "时间", SecretLevelName: [10]string{"偷盗者", "诈骗师", "解密学者", "盗火人", "窃梦家", "寄生者", "欺瞒导师", "命运木马", "未知", "错误"}},
-	{SecretName: "大地", SecretLevelName: [10]string{"耕种者", "医师", "丰收祭司", "生物学家", "德鲁伊", "古代炼金师", "未知", "未知", "未知", "未知"}},
-	{SecretName: "月亮", SecretLevelName: [10]string{"药师", "驯兽师", "吸血鬼", "魔药教授", "深红学者", "巫王", "未知", "未知", "未知", "未知"}},
-	{SecretName: "命运", SecretLevelName: [10]string{"怪物", "机器", "幸运儿", "灾祸教士", "赢家", "未知", "未知", "先知", "水银之蛇", "命运之轮"}},
-	{SecretName: "审判", SecretLevelName: [10]string{"仲裁人", "治安官", "审讯者", "法官", "惩戒骑士", "律令法师", "混乱猎手", "平衡者", "秩序之手", "审判者"}},
-	{SecretName: "黑皇帝", SecretLevelName: [10]string{"律师", "野蛮人", "贿赂者", "腐化男爵", "混乱导师", "堕落伯爵", "狂乱法师", "熵之公爵", "弑序亲王", "黑皇帝"}},
-	{SecretName: "战争", SecretLevelName: [10]string{"猎人", "挑衅者", "纵火家", "阴谋家", "收割者", "铁血骑士", "战争主教", "天气术士", "征服者", "红祭司"}},
-	{SecretName: "魔女", SecretLevelName: [10]string{"刺客", "教唆者", "女巫", "欢愉", "痛苦", "绝望", "不老", "灾难", "末日", "原初"}},
-}
-
-var secretGroup = [...][]uint64{
-	{0, 1, 2},
-	{3, 4, 5, 6, 7},
-	{8, 9},
-	{10, 11},
-	{12, 13, 14},
-	{15, 16},
-	{17},
-	{18, 19},
-	{20, 21},
-}
 
 func contains(s []uint64, e uint64) bool {
 	for _, a := range s {
@@ -159,7 +55,7 @@ func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
 }
 
 func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
-	if strings.Contains(msg, botMenu[0]) {
+	if strings.Contains(msg, "帮助") {
 		return `
 帮助：回复 帮助 可显示帮助信息。
 属性：回复 属性 可查询当前人物的属性信息。
@@ -170,31 +66,30 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
 尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
-其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md
-`
+其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
 	}
 
 	if strings.Contains(msg, "购买探险卷轴") {
 		return b.adventure(fromQQ, false)
 	}
 
-	if strings.Contains(msg, botMenu[1]) {
+	if strings.Contains(msg, "属性") {
 		return b.getProperty(fromQQ)
 	}
 
-	if strings.Contains(msg, botMenu[2]) {
+	if strings.Contains(msg, "途径") {
 		return b.getSecretList()
 	}
 
-	if strings.Contains(msg, botMenu[3]) {
+	if strings.Contains(msg, "更换") {
 		return b.changeSecretList(msg, fromQQ)
 	}
 
-	if strings.Contains(msg, botMenu[4]) {
+	if strings.Contains(msg, "排行") {
 		return b.getRank(fromQQ)
 	}
 
-	if strings.Contains(msg, botMenu[5]) {
+	if strings.Contains(msg, "探险") {
 		return b.adventure(fromQQ, true)
 	}
 
@@ -260,6 +155,9 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			}
 
 			b.setPersonToDb(fromQQ, p)
+
+			e := b.getExternFromDb(fromQQ)
+			b.setExternToDb(fromQQ, e)
 		}
 	} else {
 		v := b.getPersonFromDb(fromQQ)
@@ -268,11 +166,13 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 
 		w := b.getWaterRuleFromDb(fromQQ)
 		m := b.getMoneyFromDb(fromQQ, v.ChatCount)
+		e := b.getExternFromDb(fromQQ)
 
 		if w.DayCnt < 200 {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
+			e.Magic--
 			if v.ChatCount%100 == 0 {
 				ret += "\n恭喜！你的战力评价升级了！"
 			}
@@ -403,99 +303,6 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	b.setMoneyToDb(fromQQ, _m)
 
 	return info
-}
-
-func (b *Bot) getPersonFromDb(fromQQ uint64) *Person {
-	verify, _ := getDb().Get(b.keys(fromQQ), nil)
-	var v Person
-	rlp.DecodeBytes(verify, &v)
-	return &v
-}
-
-func (b *Bot) setPersonToDb(fromQQ uint64, p *Person) {
-	buf, _ := rlp.EncodeToBytes(p)
-	getDb().Put(b.keys(fromQQ), buf, nil)
-}
-
-func (b *Bot) getWaterRuleFromDb(fromQQ uint64) *WaterRule {
-	ret, err := getDb().Get(b.ruleKey(fromQQ), nil)
-	if err != nil {
-		return &WaterRule{Group: b.Group, QQ: fromQQ, DayCnt: 1, Days: uint64(time.Now().Unix() / (3600 * 24))}
-	}
-	var w WaterRule
-	rlp.DecodeBytes(ret, &w)
-	if w.Days != uint64(time.Now().Unix()/(3600*24)) {
-		w.DayCnt = 0
-	}
-	return &w
-}
-
-func (b *Bot) setWaterRuleToDb(fromQQ uint64, w *WaterRule) {
-	buf, _ := rlp.EncodeToBytes(w)
-	getDb().Put(b.ruleKey(fromQQ), buf, nil)
-}
-
-func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
-	ret, err := getDb().Get(b.moneyKey(fromQQ), nil)
-	if err != nil {
-		return &Money{Group: b.Group, QQ: fromQQ, Money: chatCnt}
-	}
-	var m Money
-	rlp.DecodeBytes(ret, &m)
-	return &m
-}
-
-func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
-	buf, _ := rlp.EncodeToBytes(m)
-	getDb().Put(b.moneyKey(fromQQ), buf, nil)
-}
-
-func (b *Bot) getAdvFromDb(fromQQ uint64) *Adventure {
-	ret, err := getDb().Get(b.advKey(fromQQ), nil)
-	if err != nil {
-		return &Adventure{Group: b.Group, QQ: fromQQ, Days: uint64(time.Now().Unix() / (3600 * 24)), DayCnt: 0}
-	}
-	var m Adventure
-	rlp.DecodeBytes(ret, &m)
-	if m.Days != uint64(time.Now().Unix()/(3600*24)) {
-		m.DayCnt = 0
-	}
-	return &m
-}
-
-func (b *Bot) setAdvToDb(fromQQ uint64, m *Adventure) {
-	buf, _ := rlp.EncodeToBytes(m)
-	getDb().Put(b.advKey(fromQQ), buf, nil)
-}
-
-func (b *Bot) getGodFromDb(secretID uint64) uint64 {
-	ret, err := getDb().Get(b.godKey(secretID), nil)
-	if err != nil {
-		return 0
-	}
-	var god uint64
-	rlp.DecodeBytes(ret, &god)
-	return god
-}
-
-func (b *Bot) setGodToDb(secretID uint64, god *uint64) {
-	buf, _ := rlp.EncodeToBytes(god)
-	getDb().Put(b.godKey(secretID), buf, nil)
-}
-
-func (b *Bot) setRNameToDb(fromQQ uint64, r *RespectName) {
-	buf, _ := rlp.EncodeToBytes(r)
-	getDb().Put(b.rnameKey(fromQQ), buf, nil)
-}
-
-func (b *Bot) getRNameFromDb(fromQQ uint64) string {
-	ret, err := getDb().Get(b.rnameKey(fromQQ), nil)
-	if err != nil {
-		return "无"
-	}
-	var god RespectName
-	rlp.DecodeBytes(ret, &god)
-	return "\n" + god.Name
 }
 
 func (b *Bot) levelUpdate(p *Person) string {
@@ -723,48 +530,6 @@ func (b *Bot) getRank(fromQQ uint64) string {
 	return retValue
 }
 
-var db *leveldb.DB
-
-func getDb() *leveldb.DB {
-	if db == nil {
-		_db, err := leveldb.OpenFile("secret.db", nil)
-		if err != nil {
-			fmt.Printf("open db error: %+v", err)
-			panic(err)
-		}
-		db = _db
-	}
-	return db
-}
-
-func (b *Bot) keys(fromQQ uint64) []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
-}
-
-func (b *Bot) ruleKey(fromQQ uint64) []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_water")
-}
-
-func (b *Bot) moneyKey(fromQQ uint64) []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_money")
-}
-
-func (b *Bot) advKey(fromQQ uint64) []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_adventure")
-}
-
-func (b *Bot) godKey(secretID uint64) []byte {
-	return []byte("god_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(secretID), 10))
-}
-
-func (b *Bot) rnameKey(fromQQ uint64) []byte {
-	return []byte("rname_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
-}
-
-func (b *Bot) getKeyPrefix() []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
-}
-
 var eventChan chan string
 
 func TickerInit() {
@@ -807,107 +572,4 @@ func TickerProc() string {
 		}
 	}
 	return ""
-}
-
-var fight = [...]string{
-	"不堪一击",
-	"毫不足虑",
-	"不足挂齿",
-	"初学乍练",
-	"勉勉强强",
-	"初窥门径",
-	"初出茅庐",
-	"略知一二",
-	"普普通通",
-	"平平常常",
-	"平淡无奇",
-	"粗懂皮毛",
-	"半生不熟",
-	"登堂入室",
-	"略有小成",
-	"已有小成",
-	"鹤立鸡群",
-	"驾轻就熟",
-	"青出於蓝",
-	"融会贯通",
-	"心领神会",
-	"炉火纯青",
-	"了然於胸",
-	"波澜不惊",
-	"略有大成",
-	"已有大成",
-	"豁然贯通",
-	"不同凡响",
-	"非比寻常",
-	"出类拔萃",
-	"罕有敌手",
-	"波澜老成",
-	"冠绝一时",
-	"锐不可当",
-	"断蛟伏虎",
-	"百战不殆",
-	"技冠群雄",
-	"超群绝伦",
-	"神乎其技",
-	"出神入化",
-	"傲视群雄",
-	"超尘拔俗",
-	"无出其右",
-	"登峰造极",
-	"无与伦比",
-	"靡坚不摧",
-	"所向披靡",
-	"一代宗师",
-	"世外高人",
-	"精深奥妙",
-	"神功盖世",
-	"望而生遁",
-	"勇冠三军",
-	"横扫千军",
-	"万敌莫开",
-	"举世无双",
-	"独步天下",
-	"指点江山",
-	"惊世骇俗",
-	"撼天动地",
-	"震古铄今",
-	"亘古一人",
-	"席卷八荒",
-	"超凡入圣",
-	"威镇寰宇",
-	"空前绝后",
-	"天人合一",
-	"深藏不露",
-	"深不可测",
-	"高深莫测",
-	"岿然如峰",
-	"势如破竹",
-	"势涌彪发",
-	"叱咤喑呜",
-	"跌宕昭彰",
-	"拿云攫石",
-	"摧朽拉枯",
-	"鹰撮霆击",
-	"鳌掷鲸吞",
-	"潮鸣电掣",
-	"风云变色",
-	"风行雷厉",
-	"拔山举鼎",
-	"山呼海啸",
-	"回山倒海",
-	"倒峡泻河",
-	"熏天赫地",
-	"拔地参天",
-	"万仞之巅",
-	"气贯长虹",
-	"气吞山河",
-	"欺霜傲雪",
-	"立海垂云",
-	"移山竭海",
-	"凤翥龙翔",
-	"摘星逐月",
-	"气凌霄汉",
-	"扭转乾坤",
-	"洗尽铅华",
-	"返璞归真",
 }
