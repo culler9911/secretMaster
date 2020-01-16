@@ -34,6 +34,8 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 			fmt.Println(err) // 这里的err其实就是panic传入的内容
 		}
 	}()
+
+	fmt.Println("Group msg:", msg)
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 	selfQQ := cqp.GetLoginQQ()
 	selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)

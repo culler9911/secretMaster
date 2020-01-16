@@ -129,6 +129,8 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.ruleKey(fromQQ), nil)
 	getDb().Delete(b.moneyKey(fromQQ), nil)
 	getDb().Delete(b.advKey(fromQQ), nil)
+	getDb().Delete(b.externKey(fromQQ), nil)
+	getDb().Delete(b.rnameKey(fromQQ), nil)
 
 	return "人物删除成功"
 }
@@ -168,11 +170,14 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		m := b.getMoneyFromDb(fromQQ, v.ChatCount)
 		e := b.getExternFromDb(fromQQ)
 
-		if w.DayCnt < 200 {
+		if e.Magic > 0 {
+			e.Magic--
+		}
+
+		if w.DayCnt < 200 || e.Magic > 0 {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
-			e.Magic--
 			if v.ChatCount%100 == 0 {
 				ret += "\n恭喜！你的战力评价升级了！"
 			}
@@ -183,6 +188,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		b.setPersonToDb(fromQQ, v)
 		b.setWaterRuleToDb(fromQQ, w)
 		b.setMoneyToDb(fromQQ, m)
+		b.setExternToDb(fromQQ, e)
 	}
 
 	return ret
@@ -197,9 +203,10 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	a.DayCnt++
 	a.Days = uint64(time.Now().Unix() / (3600 * 24))
 	b.setAdvToDb(fromQQ, a)
+	externProperty := b.getExternFromDb(fromQQ)
 
 	rand.Seed(time.Now().UnixNano())
-	i := rand.Intn(20)
+	i := int(externProperty.Luck) + rand.Intn(20-int(externProperty.Luck))
 	info := ""
 	m := 0
 	e := 0
@@ -412,9 +419,12 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		money.Money -= 2
 	}
 	b.setMoneyToDb(fromQQ, money)
+	e := b.getExternFromDb(fromQQ)
 
-	info := fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+	info := fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
 		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
+		e.Luck,
+		e.Magic,
 		startTime, fight[myFightIndex], sReLive,
 		b.getRNameFromDb(fromQQ),
 	)

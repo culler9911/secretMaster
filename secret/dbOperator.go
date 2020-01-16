@@ -165,5 +165,12 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 		v.Magic = 200
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
+
+	p := b.getPersonFromDb(fromQQ)
+	if p.SecretID == 17 {
+		if v.Luck < 5 {
+			v.Luck += 5
+		}
+	}
 	return &v
 }
