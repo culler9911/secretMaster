@@ -224,13 +224,15 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	m := 0
 	e := 0
 	if i < 1 { // -钱＆经验5%
-		t := rand.Intn(2)
+		t := rand.Intn(3)
 		m = -1 * (10 + rand.Intn(41))
 		e = -1 * (10 + rand.Intn(41))
 		if t == 0 {
 			info = fmt.Sprintf("在探险过程中遇到危险不得不使用保命物品才得以逃脱，损失惨重。经验:%d, 金钱:%d", e, m)
-		} else {
+		} else if t == 1 {
 			info = fmt.Sprintf("被异教徒盯上并暴力劫掠，损失惨重。经验:%d, 金钱:%d", e, m)
+		} else {
+			info = fmt.Sprintf("不幸遭遇了官方非凡者对普通非凡者的追捕，仓皇逃窜。经验:%d, 金钱:%d", e, m)
 		}
 	} else if i < 3 { // -经验10%
 		t := rand.Intn(2)
@@ -242,22 +244,28 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			info = fmt.Sprintf("在探险过程中用尽了力量不得不返回，灵性枯竭。经验:%d", e)
 		}
 	} else if i < 5 { // -钱10%
-		t := rand.Intn(2)
+		t := rand.Intn(4)
 		m = -1 * (10 + rand.Intn(41))
 		e = 0
 		if t == 0 {
 			info = fmt.Sprintf("在非凡者聚会上买到假货，该死。金钱:%d", m)
-		} else {
+		} else if t == 1 {
 			info = fmt.Sprintf("交房租的时间到了，老天。金钱:%d", m)
+		} else if t == 3 {
+			info = fmt.Sprintf("偶遇极光会吃手指的邪教徒，逃跑的路上不幸丢失了些金钱。金钱:%d", m)
+		} else {
+			info = fmt.Sprintf("被一位叫佛尔思的女士拉进咖啡馆询问问题，据她说这是要搜集小说的素材…？你讲得口干舌燥，不由连着喝了好几杯茶。金钱:%d", m)
 		}
 	} else if i < 7 { // +钱＆经验10%
-		t := rand.Intn(2)
+		t := rand.Intn(3)
 		m = (20 + rand.Intn(81))
 		e = (20 + rand.Intn(81))
 		if t == 0 {
 			info = fmt.Sprintf("探索了一座遗迹，了解到一些隐秘的知识并发现了一些财宝。经验:%d, 金钱:%d", e, m)
-		} else {
+		} else if t == 1 {
 			info = fmt.Sprintf("成功打击了一名异教徒，获得了对方的一些物品。经验:%d, 金钱:%d", e, m)
+		} else {
+			info = fmt.Sprintf("你搭乘的客船遇上了海盗袭击。千钧一发之际幽蓝复仇者号出现在海天交接之处，震慑走了向平民挥刀的歹徒们。你向蓝发的船长脱帽致意，获得经验以及海盗落下的金钱。经验:%d, 金钱:%d", e, m)
 		}
 	} else if i < 10 { // +钱15%
 		t := rand.Intn(2)
@@ -269,13 +277,19 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			info = fmt.Sprintf("猎杀了一只凶猛的非凡生物，获得材料。金钱:%d", m)
 		}
 	} else if i < 13 { // 	+经验15%
-		t := rand.Intn(2)
+		t := rand.Intn(5)
 		m = 0
 		e = (20 + rand.Intn(81))
 		if t == 0 {
 			info = fmt.Sprintf("在一出失落的古堡中发现一本记载了神秘学知识的书籍，获得知识。经验:%d", e)
-		} else {
+		} else if t == 1 {
 			info = fmt.Sprintf("参加非凡者组织的聚会，有幸的到了高阶阅读者的指点，获得知识。经验:%d", e)
+		} else if t == 2 {
+			info = fmt.Sprintf("你遇见了贝克兰德最美丽的明珠奥黛丽·霍尔小姐，并有幸同她本人……的宠物苏茜玩耍了一会，获得幸福感。经验:%d", e)
+		} else if t == 3 {
+			info = fmt.Sprintf("有幸围观了疯狂冒险家格尔曼·斯帕罗提现海盗的全部过程。经验:%d", e)
+		} else {
+			info = fmt.Sprintf("被知识教会的传教士拦下，被强制灌输了一段四皇之战的历史。经验:%d", e)
 		}
 	} else { // 无事发生35%
 		t := rand.Intn(2)
