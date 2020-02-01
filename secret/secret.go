@@ -54,6 +54,10 @@ func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
 	return b.cmdSwitch(msg, fromQQ)
 }
 
+func (b *Bot) RunPrivate(msg string, fromQQ uint64, nick string) string {
+	return b.cmdSwitch(msg, fromQQ)
+}
+
 func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	if strings.Contains(msg, "帮助") {
 		return `

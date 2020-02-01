@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
@@ -24,7 +26,59 @@ func init() {
 }
 
 func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) int32 {
-	cqp.SendPrivateMsg(fromQQ, msg) //复读机
+	// cqp.SendPrivateMsg(fromQQ, msg) //复读机
+	fmt.Println("Private msg:", msg)
+
+	if strings.Contains(msg, "@") {
+		strArray := strings.Split(msg, "@")
+		if len(strArray) != 2 {
+			return 0
+		}
+
+		defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+			if err := recover(); err != nil {
+				fmt.Println(err) // 这里的err其实就是panic传入的内容
+			}
+		}()
+
+		value, _ := strconv.Atoi(strArray[1])
+		fromGroup := int64(value)
+		msg = strArray[0]
+
+		info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
+		selfQQ := cqp.GetLoginQQ()
+		selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
+		bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
+		ret := ""
+
+		send := func() {
+			if len(ret) > 0 {
+				fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
+				time.Sleep(1000)
+				id := cqp.SendPrivateMsg(fromQQ, ret)
+				fmt.Printf("\nSend finish id:%d\n", id)
+				// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
+			}
+		}
+
+		update := func() {
+			if len(msg) > 9 {
+				fmt.Println(msg, "大于3", len(msg))
+				ret = bot.Update(uint64(fromQQ), info.Name)
+			} else {
+				fmt.Println(msg, "小于3", len(msg))
+			}
+		}
+
+		update()
+		send()
+		// ret = secret.TickerProc()
+		// send()
+		ret = bot.RunPrivate(msg, uint64(fromQQ), info.Name)
+		send()
+
+		return 0
+	}
 	return 0
 }
 
