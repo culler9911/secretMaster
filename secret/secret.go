@@ -235,35 +235,53 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			info = fmt.Sprintf("不幸遭遇了官方非凡者对普通非凡者的追捕，仓皇逃窜。经验:%d, 金钱:%d", e, m)
 		}
 	} else if i < 3 { // -经验10%
-		t := rand.Intn(2)
+		t := rand.Intn(5)
 		m = 0
 		e = -1 * (10 + rand.Intn(41))
 		if t == 0 {
 			info = fmt.Sprintf("由于错误的祷告，被不知名的存在盯上，受到打击。经验:%d", e)
+		} else if t == 1 {
+			info = fmt.Sprintf("飞鱼与酒酒吧的列朗齐味道不错，你一口气喝了好几大杯。晕头转向中有混混想用所谓本地土特产腌肉把戏强买强卖。你愤怒地想要回击却被他的同伙团团围住，双拳难敌四手，被迫挨打。经验:%d", e)
+		} else if t == 2 {
+			info = fmt.Sprintf("被蒸汽与机械教会的狂热研究者抓去实验新制作的非凡物品，腰酸背痛地艰难逃脱。经验:%d", e)
+		} else if t == 3 {
+			info = fmt.Sprintf("没时间解释了，列奥德罗！一道闪电劈下。经验:%d", e)
 		} else {
 			info = fmt.Sprintf("在探险过程中用尽了力量不得不返回，灵性枯竭。经验:%d", e)
 		}
 	} else if i < 5 { // -钱10%
-		t := rand.Intn(4)
+		t := rand.Intn(7)
 		m = -1 * (10 + rand.Intn(41))
 		e = 0
 		if t == 0 {
 			info = fmt.Sprintf("在非凡者聚会上买到假货，该死。金钱:%d", m)
 		} else if t == 1 {
 			info = fmt.Sprintf("交房租的时间到了，老天。金钱:%d", m)
-		} else if t == 3 {
+		} else if t == 2 {
 			info = fmt.Sprintf("偶遇极光会吃手指的邪教徒，逃跑的路上不幸丢失了些金钱。金钱:%d", m)
+		} else if t == 3 {
+			info = fmt.Sprintf("飞鱼与酒酒吧的列朗齐味道不错，你一口气喝了好几大杯。晕头转向中被混混用所谓本地土特产腌肉的强买强卖把戏骗走了些钱。腌肉味道还行，可你还是心疼钱包。金钱:%d", m)
+		} else if t == 4 {
+			info = fmt.Sprintf("路过拜亚姆土著孤儿幼儿园，看到知名大海盗烈焰正在指挥工人们给孩子们修建新的操场。你忍不住给混血儿们捐了点钱。虽然钱包瘪了一点但是心情很愉快。金钱:%d", m)
+		} else if t == 5 {
+			info = fmt.Sprintf("魔女的滋味真不错啊…一觉醒来佳人已不知所踪。金钱:%d", m)
 		} else {
 			info = fmt.Sprintf("被一位叫佛尔思的女士拉进咖啡馆询问问题，据她说这是要搜集小说的素材…？你讲得口干舌燥，不由连着喝了好几杯茶。金钱:%d", m)
 		}
 	} else if i < 7 { // +钱＆经验10%
-		t := rand.Intn(3)
+		t := rand.Intn(6)
 		m = (20 + rand.Intn(81))
 		e = (20 + rand.Intn(81))
 		if t == 0 {
 			info = fmt.Sprintf("探索了一座遗迹，了解到一些隐秘的知识并发现了一些财宝。经验:%d, 金钱:%d", e, m)
 		} else if t == 1 {
 			info = fmt.Sprintf("成功打击了一名异教徒，获得了对方的一些物品。经验:%d, 金钱:%d", e, m)
+		} else if t == 2 {
+			info = fmt.Sprintf("在贝克兰德一家著名报红冰淇淋店买了一只甜筒。正准备享用时却发现旁边夫妻怀中一位可爱的宝宝正含着拇指眼巴巴地望着你。鬼使神差中你把手中还未品尝的甜筒就这么直接递了过去……当晚你发现自己随手买的彩票中了大奖。经验:%d, 金钱:%d", e, m)
+		} else if t == 3 {
+			info = fmt.Sprintf("和一位身材矮小的金发女士合作，成功抓捕了一名官方悬赏的在逃罪犯。经验:%d, 金钱:%d", e, m)
+		} else if t == 4 {
+			info = fmt.Sprintf("和一位黑夜教会长相俊美的红手套先生合作，成功抓捕了一名官方悬赏的在逃罪犯。经验:%d, 金钱:%d", e, m)
 		} else {
 			info = fmt.Sprintf("你搭乘的客船遇上了海盗袭击。千钧一发之际幽蓝复仇者号出现在海天交接之处，震慑走了向平民挥刀的歹徒们。你向蓝发的船长脱帽致意，获得经验以及海盗落下的金钱。经验:%d, 金钱:%d", e, m)
 		}
@@ -277,7 +295,7 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			info = fmt.Sprintf("猎杀了一只凶猛的非凡生物，获得材料。金钱:%d", m)
 		}
 	} else if i < 13 { // 	+经验15%
-		t := rand.Intn(5)
+		t := rand.Intn(8)
 		m = 0
 		e = (20 + rand.Intn(81))
 		if t == 0 {
@@ -287,7 +305,13 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 		} else if t == 2 {
 			info = fmt.Sprintf("你遇见了贝克兰德最美丽的明珠奥黛丽·霍尔小姐，并有幸同她本人……的宠物苏茜玩耍了一会，获得幸福感。经验:%d", e)
 		} else if t == 3 {
+			info = fmt.Sprintf("没时间解释了，赞美太阳！圣洁的日光中。经验:%d", e)
+		} else if t == 4 {
 			info = fmt.Sprintf("有幸围观了疯狂冒险家格尔曼·斯帕罗提现海盗的全部过程。经验:%d", e)
+		} else if t == 5 {
+			info = fmt.Sprintf("没时间解释了，赞美女神！寂静的绯红中。经验:%d", e)
+		} else if t == 6 {
+			info = fmt.Sprintf("猎人的滋味真不错啊…你听了一整晚的单口相声。经验:%d", e)
 		} else {
 			info = fmt.Sprintf("被知识教会的传教士拦下，被强制灌输了一段四皇之战的历史。经验:%d", e)
 		}
