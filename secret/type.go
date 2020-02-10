@@ -27,6 +27,7 @@ type Bot struct {
 	QQ    uint64
 	Group uint64
 	Name  string
+	Rank  []uint64
 }
 
 type WaterRule struct {
@@ -59,4 +60,13 @@ type ExternProperty struct {
 	Luck  uint64
 	Magic uint64
 	Days  uint64
+}
+
+type AdventureEvent struct {
+	// 类型：1）-钱＆经验5%；2）-经验10%；3）-钱10%；4）+钱＆经验10%；5）+钱15%；6）+经验15%；7）无事发生35%
+	Type int
+	// 概率：百分比1~100
+	Probability int
+	// 文案
+	Messages []string
 }
