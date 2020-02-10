@@ -199,5 +199,6 @@ var adventureEvents = [7]AdventureEvent{
 	AdventureEvent{Type: 7, Probability: 35, Messages: []string{
 		"美好的一天，何不来点东拜朗甜姜红茶？",
 		"糟糕的一天，并不想出门！",
+		"美好的一天，何不来点咕噜树树汁？",
 	}},
 }
