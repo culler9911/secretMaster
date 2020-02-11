@@ -63,16 +63,17 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		return `
 帮助：回复 帮助 可显示帮助信息。
 属性：回复 属性 可查询当前人物的属性信息。
+查询：回复 查询+排名 可查询排行榜上人物的属性信息。
 途径：回复 途径 可查询途径列表。
 更换：回复 更换+途径序号 可更改当前人物的非凡途径。
 排行：回复 排行 可查询当前群内的非凡者排行榜。
 探险：回复 探险 可主动触发每日3次的奇遇探险经历。
-商店：回复 商店 可查看神秘黑市的商品清单。
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
 尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
-其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
+支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
 	}
+	//商店：回复 商店 可查看神秘黑市的商品清单。
 
 	if strings.Contains(msg, "购买探险卷轴") {
 		return b.adventure(fromQQ, false)
@@ -80,6 +81,17 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "属性") {
 		return b.getProperty(fromQQ)
+	}
+
+	if strings.Contains(msg, "查询") {
+		rankStr := msg[strings.Index(msg, "查询")+len("查询"):]
+		fmt.Println("查询排名：", rankStr)
+		rank, err := strconv.Atoi(rankStr)
+		if err != nil {
+			return err.Error()
+		}
+
+		return b.getProperty(b.Rank[rank-1])
 	}
 
 	if strings.Contains(msg, "途径") {
@@ -509,10 +521,12 @@ func (b *Bot) getRank(fromQQ uint64) string {
 
 	sort.Sort(Persons(persons))
 
+	b.Rank = make([]uint64, 0)
+
 	for i := 0; i < len(persons); i++ {
 		v := persons[i]
 		retValue = fmt.Sprintf("%s\n第%d名：%s，经验：%d", retValue, i+1, v.Name, v.ChatCount)
-
+		b.Rank = append(b.Rank, v.QQ)
 		cnt++
 		if cnt > 30 {
 			break
