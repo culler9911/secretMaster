@@ -70,3 +70,12 @@ type AdventureEvent struct {
 	// 文案
 	Messages []string
 }
+
+type Menu struct {
+	// 菜单级别：0，1，2，3
+	Level   int
+	Title   string
+	Info    string
+	Commit  string
+	SubMenu []Menu
+}
