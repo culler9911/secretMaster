@@ -42,6 +42,11 @@ func NewSecretBot(qq, group uint64, groupNick string) *Bot {
 		return bot
 	}
 	bot = &Bot{QQ: qq, Group: group, Name: groupNick}
+	bot.information = &Information{bot}
+	bot.career = &Career{bot}
+	bot.organization = &Organization{bot}
+	bot.store = &Store{bot}
+
 	botMap[group] = bot
 	return bot
 }
@@ -110,8 +115,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		if err != nil {
 			return err.Error()
 		}
-
-		return b.getProperty(b.Rank[rank-1])
+		if len(b.Rank) > rank-1 {
+			return b.getProperty(b.Rank[rank-1])
+		}
+		return "请先查看最新排行"
 	}
 
 	if strings.Contains(msg, "途径") {
@@ -136,14 +143,6 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "尊名") {
 		return b.setRespectName(msg, fromQQ)
-	}
-
-	if strings.Contains(msg, "商店") {
-		return `欢迎光临星火之潮贝克兰德分店，请在浏览商品时，戴好您的斗篷和面具（找到想要购买的商品后，只需要回复购买加商品名称即可，如：购买探险卷轴）
-探险卷轴（100金镑）：走内部渠道，可立即开始1次探险。
-灵性药剂（70金榜）：可增加50点灵性，每天限购1次。
-权杖（1000金镑）：这是成立非凡者组织或教会必不可少的证明物。
-灵性材料（50金榜）：随机得到1份灵性材料，可用于发动非凡仪式。`
 	}
 
 	return ""

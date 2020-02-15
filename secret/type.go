@@ -28,6 +28,11 @@ type Bot struct {
 	Group uint64
 	Name  string
 	Rank  []uint64
+
+	information  *Information
+	career       *Career
+	organization *Organization
+	store        *Store
 }
 
 type WaterRule struct {
@@ -73,9 +78,25 @@ type AdventureEvent struct {
 
 type Menu struct {
 	// 菜单级别：0，1，2，3
-	Level   int
+	ID      int
 	Title   string
 	Info    string
 	Commit  string
 	SubMenu []Menu
+}
+
+type Information struct {
+	b *Bot
+}
+
+type Career struct {
+	b *Bot
+}
+
+type Organization struct {
+	b *Bot
+}
+
+type Store struct {
+	b *Bot
 }
