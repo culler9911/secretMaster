@@ -59,6 +59,18 @@ func (b *Bot) RunPrivate(msg string, fromQQ uint64, nick string) string {
 }
 
 func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
+	if strings.Contains(msg, "序列战争关") {
+		return b.botSwitch(false)
+	}
+
+	if strings.Contains(msg, "序列战争开") {
+		return b.botSwitch(true)
+	}
+
+	if !b.getSwitch() {
+		return ""
+	}
+
 	if strings.Contains(msg, "帮助") {
 		return `
 帮助：回复 帮助 可显示帮助信息。
@@ -71,7 +83,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
 尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
-支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
+支持分群开关，指令为 序列战争关 和 序列战争开 （默认开启）支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
 	}
 	//商店：回复 商店 可查看神秘黑市的商品清单。
 
@@ -127,6 +139,15 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	}
 
 	return ""
+}
+
+func (b *Bot) botSwitch(enable bool) string {
+	b.setSwitch(enable)
+	if enable {
+		return fmt.Sprintf("已在群%d开启《序列战争》诡秘之主背景小游戏插件。", b.Group)
+	}
+
+	return fmt.Sprintf("已在群%d关闭《序列战争》诡秘之主背景小游戏插件。", b.Group)
 }
 
 func (b *Bot) setRespectName(msg string, fromQQ uint64) string {

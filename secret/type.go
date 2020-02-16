@@ -70,3 +70,8 @@ type AdventureEvent struct {
 	// 文案
 	Messages []string
 }
+
+type BotSwitch struct {
+	Group  uint64
+	Enable bool
+}

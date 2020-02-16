@@ -51,8 +51,28 @@ func (b *Bot) externKey(fromQQ uint64) []byte {
 	return []byte("extern_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
 }
 
+func (b *Bot) switchKey() []byte {
+	return []byte("switch_" + strconv.FormatInt(int64(b.Group), 10))
+}
+
 func (b *Bot) getKeyPrefix() []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
+}
+
+func (b *Bot) getSwitch() bool {
+	verify, err := getDb().Get(b.switchKey(), nil)
+	if err != nil {
+		return true
+	}
+	var v BotSwitch
+	rlp.DecodeBytes(verify, &v)
+	return v.Enable
+}
+
+func (b *Bot) setSwitch(enable bool) {
+	p := &BotSwitch{b.Group, enable}
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.switchKey(), buf, nil)
 }
 
 func (b *Bot) getPersonFromDb(fromQQ uint64) *Person {
