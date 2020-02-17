@@ -182,6 +182,10 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 }
 
 func (b *Bot) Update(fromQQ uint64, nick string) string {
+	if !b.getSwitch() {
+		return ""
+	}
+
 	key := b.keys(fromQQ)
 	value, err := getDb().Get(key, nil)
 	fmt.Println("value:", value)
