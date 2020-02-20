@@ -73,7 +73,6 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "帮助") {
 		return `
-帮助：回复 帮助 可显示帮助信息。
 属性：回复 属性 可查询当前人物的属性信息。
 查询：回复 查询+排名 可查询排行榜上人物的属性信息。
 途径：回复 途径 可查询途径列表。
@@ -83,7 +82,8 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
 尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
-支持分群开关，指令为 序列战争关 和 序列战争开 （默认开启）支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
+支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster
+` + time.Now().Format("2006.01.02 15:04:05")
 	}
 	//商店：回复 商店 可查看神秘黑市的商品清单。
 
@@ -100,7 +100,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		fmt.Println("查询排名：", rankStr)
 		rank, err := strconv.Atoi(rankStr)
 		if err != nil {
-			return err.Error()
+			return "是找我吗？查询排名要查询加数字哦。如果不是，请不要艾特我。"
 		}
 
 		return b.getProperty(b.Rank[rank-1])
@@ -138,7 +138,58 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 灵性材料（50金榜）：随机得到1份灵性材料，可用于发动非凡仪式。`
 	}
 
+	if strings.Contains(msg, "货币升级") {
+		return b.moneyUpdate()
+	}
+
+	if strings.Contains(msg, "货币映射") {
+		return b.moneyMap(msg)
+	}
+
+	if strings.Contains(msg, "查看映射") {
+		bind := b.getMoneyBind()
+		return fmt.Sprintf("%+v\n", bind)
+	}
+
 	return ""
+}
+
+func (b *Bot) moneyUpdate() string {
+	bind := b.getMoneyBind()
+	if bind.HasUpdate {
+		return "已经升级过了，请不要重复升级"
+	}
+	bind.HasUpdate = true
+	b.setMoneyBind(bind)
+	iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+	for iter.Next() {
+		fmt.Printf("key:%+v", string(iter.Key()))
+		fmt.Printf("value:%+v", iter.Value())
+		if strings.Index(string(iter.Key()), "money") != -1 {
+			verify := iter.Value()
+			var m Money
+			rlp.DecodeBytes(verify, &m)
+			fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+			m.Money = m.Money * 240
+			fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+
+			b.setMoneyToDb(m.QQ, &m)
+		}
+	}
+	iter.Release()
+	err := iter.Error()
+	fmt.Println(err)
+	return "升级成功"
+}
+
+func (b *Bot) moneyMap(msg string) string {
+	strs := strings.Split(msg, ";")
+	bind := &MoneyBind{}
+	bind.IniPath = strs[1]
+	bind.IniSection = strs[2]
+	bind.IniKey = strs[3]
+	b.setMoneyBind(bind)
+	return fmt.Sprintf("映射成功, Path:%s, Section:%s, Key:%s\n", strs[1], strs[2], strs[3])
 }
 
 func (b *Bot) botSwitch(enable bool) string {
@@ -227,7 +278,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		if w.DayCnt < 200 || e.Magic > 0 {
 			v.ChatCount++
 			w.DayCnt++
-			m.Money++
+			m.Money += 240
 			if v.ChatCount%100 == 0 {
 				ret += "\n恭喜！你的战力评价升级了！"
 			}
@@ -270,7 +321,7 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			case 1:
 				m = -1 * (10 + rand.Intn(41))
 				e = -1 * (10 + rand.Intn(41))
-				info = fmt.Sprintf("%s经验:%d, 金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
+				info = fmt.Sprintf("%s经验:%d, 金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
 			case 2:
 				m = 0
 				e = -1 * (10 + rand.Intn(41))
@@ -278,15 +329,15 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			case 3:
 				m = -1 * (10 + rand.Intn(41))
 				e = 0
-				info = fmt.Sprintf("%s金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
+				info = fmt.Sprintf("%s金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
 			case 4:
 				m = (20 + rand.Intn(81))
 				e = (20 + rand.Intn(81))
-				info = fmt.Sprintf("%s经验:%d, 金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
+				info = fmt.Sprintf("%s经验:%d, 金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
 			case 5:
 				m = (20 + rand.Intn(81))
 				e = 0
-				info = fmt.Sprintf("%s金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
+				info = fmt.Sprintf("%s金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
 			case 6:
 				m = 0
 				e = (20 + rand.Intn(81))
@@ -304,18 +355,18 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	_m := b.getMoneyFromDb(fromQQ, person.ChatCount)
 
 	if !limit {
-		if _m.Money > 100 {
-			_m.Money -= 100
+		if _m.Money > 100*240 {
+			_m.Money -= (100 * 240)
 		} else {
 			return "钱包空空，买不起了哦"
 		}
 	}
 
 	if m >= 0 {
-		_m.Money += uint64(m)
+		_m.Money += uint64(m) * 240
 	} else {
-		if _m.Money > uint64(-1*m) {
-			_m.Money -= uint64(-1 * m)
+		if _m.Money > uint64(-1*m)*240 {
+			_m.Money -= uint64(-1*m) * 240
 		} else {
 			_m.Money = 0
 		}
@@ -406,6 +457,13 @@ func (b *Bot) talkToMe(msg string) bool {
 	return false
 }
 
+func (b *Bot) moneyUnit(money uint64) (uint64, uint64, uint64) {
+	jinbang := money / 240
+	sule := money % 240 / 12
+	lusuo := money % 240 % 12
+	return jinbang, sule, lusuo
+}
+
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
 	var secretName string
@@ -440,19 +498,33 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	}
 
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 2 {
-		money.Money -= 2
-	}
-	b.setMoneyToDb(fromQQ, money)
+	// if money.Money > 2*240 {
+	// 	money.Money -= 2 * 240
+	// }
+	// b.setMoneyToDb(fromQQ, money)
 	e := b.getExternFromDb(fromQQ)
-
-	info := fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
-		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
-		e.Luck,
-		e.Magic,
-		startTime, fight[myFightIndex], sReLive,
-		b.getRNameFromDb(fromQQ),
-	)
+	bind := b.getMoneyBind()
+	fmt.Printf("%+v", bind)
+	info := ""
+	if bind.HasUpdate {
+		j, s, l := b.moneyUnit(money.Money)
+		info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n现金：%d金镑%d苏勒%d便士\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+			v.Name, secretName, secretLevelName, v.ChatCount,
+			j, s, l,
+			e.Luck,
+			e.Magic,
+			startTime, fight[myFightIndex], sReLive,
+			b.getRNameFromDb(fromQQ),
+		)
+	} else {
+		info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+			v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
+			e.Luck,
+			e.Magic,
+			startTime, fight[myFightIndex], sReLive,
+			b.getRNameFromDb(fromQQ),
+		)
+	}
 
 	fmt.Print(info)
 	return info
@@ -506,8 +578,8 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 	b.setPersonToDb(fromQQ, v)
 
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 100 {
-		money.Money -= 100
+	if money.Money > 100*240 {
+		money.Money -= 100 * 240
 	}
 	b.setMoneyToDb(fromQQ, money)
 
@@ -560,8 +632,8 @@ func (b *Bot) getRank(fromQQ uint64) string {
 
 	v := b.getPersonFromDb(fromQQ)
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 2 {
-		money.Money -= 2
+	if money.Money > 2*240 {
+		money.Money -= 2 * 240
 	}
 	b.setMoneyToDb(fromQQ, money)
 

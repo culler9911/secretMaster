@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/molin0000/secretMaster/rlp"
+	"gopkg.in/ini.v1"
 )
 
 func TestRun(t *testing.T) {
@@ -101,4 +102,24 @@ func TestGoRoute(t *testing.T) {
 	}
 
 	fmt.Println("Finish")
+}
+
+func TestIniRead(t *testing.T) {
+	iniPath := "/Users/molin/coolq/data/app/com.qmt.demo/玩家数据.ini"
+
+	cfg, err := ini.Load(iniPath)
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		return
+	}
+
+	fmt.Println("Data Path:", cfg.Section(cString("67939461")).Key(cString("金币数量")).String())
+	amount, err := cfg.Section(cString("67939461")).Key(cString("数量")).Uint64()
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		return
+	}
+	amount += 10000
+	cfg.Section(cString("67939461")).Key(cString("金币数量")).SetValue(strconv.FormatUint(amount, 10))
+	cfg.SaveTo(iniPath)
 }

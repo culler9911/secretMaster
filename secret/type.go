@@ -75,3 +75,10 @@ type BotSwitch struct {
 	Group  uint64
 	Enable bool
 }
+
+type MoneyBind struct {
+	IniPath    string
+	IniSection string
+	IniKey     string
+	HasUpdate  bool
+}

@@ -2,11 +2,14 @@ package secret
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/molin0000/secretMaster/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
+	sc "golang.org/x/text/encoding/simplifiedchinese"
+	"gopkg.in/ini.v1"
 )
 
 var db *leveldb.DB
@@ -107,6 +110,13 @@ func (b *Bot) setWaterRuleToDb(fromQQ uint64, w *WaterRule) {
 }
 
 func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
+	bind := b.getMoneyBind()
+	if bind.HasUpdate && fileExists(bind.IniPath) {
+		fmt.Println("get from ini.")
+		return b.getMoneyFromIni(fromQQ)
+	}
+	fmt.Println("get from db.")
+
 	ret, err := getDb().Get(b.moneyKey(fromQQ), nil)
 	if err != nil {
 		return &Money{Group: b.Group, QQ: fromQQ, Money: chatCnt}
@@ -117,8 +127,54 @@ func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
 }
 
 func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
+	bind := b.getMoneyBind()
+	if bind.HasUpdate {
+		fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+		b.setMoneyToIni(fromQQ, m)
+		return
+	}
 	buf, _ := rlp.EncodeToBytes(m)
 	getDb().Put(b.moneyKey(fromQQ), buf, nil)
+}
+
+func cString(str string) string {
+	gbstr, _ := sc.GB18030.NewEncoder().String(str)
+	return gbstr
+}
+
+func goString(str string) string {
+	utf8str, _ := sc.GB18030.NewDecoder().String(str)
+	return utf8str
+}
+
+func (b *Bot) getMoneyFromIni(fromQQ uint64) *Money {
+	bind := b.getMoneyBind()
+	cfg, err := ini.Load(bind.IniPath)
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		return &Money{Group: b.Group, QQ: fromQQ, Money: 0}
+	}
+
+	fmt.Println("Data Path:", cfg.Section(cString(strconv.FormatUint(fromQQ, 10))).Key(cString(bind.IniKey)).String())
+	amount, err := cfg.Section(strconv.FormatUint(fromQQ, 10)).Key(cString(bind.IniKey)).Uint64()
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		return &Money{Group: b.Group, QQ: fromQQ, Money: 0}
+	}
+
+	return &Money{Group: b.Group, QQ: fromQQ, Money: amount}
+}
+
+func (b *Bot) setMoneyToIni(fromQQ uint64, m *Money) {
+	bind := b.getMoneyBind()
+	cfg, err := ini.Load(bind.IniPath)
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		return
+	}
+	fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+	cfg.Section(cString(strconv.FormatUint(fromQQ, 10))).Key(cString(bind.IniKey)).SetValue(strconv.FormatUint(m.Money, 10))
+	cfg.SaveTo(bind.IniPath)
 }
 
 func (b *Bot) getAdvFromDb(fromQQ uint64) *Adventure {
@@ -193,4 +249,31 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 		}
 	}
 	return &v
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func (b *Bot) moneyBindKey() []byte {
+	return []byte("moneyBind_" + strconv.FormatInt(int64(b.Group), 10))
+}
+
+func (b *Bot) getMoneyBind() *MoneyBind {
+	verify, err := getDb().Get(b.moneyBindKey(), nil)
+	if err != nil {
+		return &MoneyBind{"/home/user/coolq/data/app/com.qmt.demo/玩家数据.ini", "cQQ", "金币数量", false}
+	}
+	var v MoneyBind
+	rlp.DecodeBytes(verify, &v)
+	return &v
+}
+
+func (b *Bot) setMoneyBind(p *MoneyBind) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.moneyBindKey(), buf, nil)
 }
