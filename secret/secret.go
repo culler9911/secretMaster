@@ -199,6 +199,8 @@ func (b *Bot) moneyMap(msg string) string {
 	bind.IniKey = strs[3]
 	b.setMoneyBind(bind)
 	return fmt.Sprintf("映射成功, Path:%s, Section:%s, Key:%s\n", strs[1], strs[2], strs[3])
+}
+
 func (b *Bot) gmAddMoney(fromQQ uint64) string {
 	if fromQQ != 67939461 {
 		return "对不起，你不是GM，别想欺骗机器人"
