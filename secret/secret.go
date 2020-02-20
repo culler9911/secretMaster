@@ -148,7 +148,11 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	}
 
 	if strings.Contains(msg, "货币升级") {
-		return b.moneyUpdate()
+		return b.moneyUpdate(true)
+	}
+
+	if strings.Contains(msg, "货币降级") {
+		return b.moneyUpdate(false)
 	}
 
 	if strings.Contains(msg, "货币映射") {
@@ -163,13 +167,21 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	return ""
 }
 
-func (b *Bot) moneyUpdate() string {
+func (b *Bot) moneyUpdate(update bool) string {
 	bind := b.getMoneyBind()
-	if bind.HasUpdate {
-		return "已经升级过了，请不要重复升级"
+	if update {
+		if bind.HasUpdate {
+			return "已经升级过了，请不要重复升级"
+		}
+		bind.HasUpdate = true
+		b.setMoneyBind(bind)
+		return "升级成功"
 	}
-	bind.HasUpdate = true
+
+	bind.HasUpdate = false
 	b.setMoneyBind(bind)
+	return "降级成功，配置保留，但不再读取ini文件"
+
 	// iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
 	// for iter.Next() {
 	// 	fmt.Printf("key:%+v", string(iter.Key()))
@@ -188,7 +200,6 @@ func (b *Bot) moneyUpdate() string {
 	// iter.Release()
 	// err := iter.Error()
 	// fmt.Println(err)
-	return "升级成功"
 }
 
 func (b *Bot) moneyMap(msg string) string {
