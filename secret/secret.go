@@ -82,13 +82,19 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 探险：回复 探险 可主动触发每日3次的奇遇探险经历。
 删除人物：删除当前全部经验和属性，重新创建人物。
 购买探险卷轴：花费100金镑购买1次探险机会。
+购买红剧场门票：花费200金镑100灵性观看1次红剧场演出。
 尊名：序列3以后可以自定义尊名显示，方法为@Yami尊名xxxxoooo。
-支持分群开关，指令为 序列战争关 和 序列战争开 （默认开启）支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`
+支持分群开关，指令为 序列战争关 和 序列战争开 （默认开启）支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md
+` + time.Now().Format("2006.01.02 15:04:05")
 	}
 	//商店：回复 商店 可查看神秘黑市的商品清单。
 
 	if strings.Contains(msg, "购买探险卷轴") {
 		return b.adventure(fromQQ, false)
+	}
+
+	if strings.Contains(msg, "购买红剧场门票") {
+		return b.redTheater(fromQQ)
 	}
 
 	if strings.Contains(msg, "属性") {
@@ -100,7 +106,7 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		fmt.Println("查询排名：", rankStr)
 		rank, err := strconv.Atoi(rankStr)
 		if err != nil {
-			return err.Error()
+			return "是找我吗？查询排名要查询加数字哦。如果不是，请不要艾特我。"
 		}
 
 		return b.getProperty(b.Rank[rank-1])
@@ -130,6 +136,10 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		return b.setRespectName(msg, fromQQ)
 	}
 
+	if strings.Contains(msg, "GM加钱") {
+		return b.gmAddMoney(fromQQ)
+	}
+
 	if strings.Contains(msg, "商店") {
 		return `欢迎光临星火之潮贝克兰德分店，请在浏览商品时，戴好您的斗篷和面具（找到想要购买的商品后，只需要回复购买加商品名称即可，如：购买探险卷轴）
 探险卷轴（100金镑）：走内部渠道，可立即开始1次探险。
@@ -139,6 +149,39 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 	}
 
 	return ""
+}
+
+func (b *Bot) gmAddMoney(fromQQ uint64) string {
+	if fromQQ != 67939461 {
+		return "对不起，你不是GM，别想欺骗机器人"
+	}
+
+	m := b.getMoneyFromDb(fromQQ, 0)
+	m.Money += 1000
+	b.setMoneyToDb(fromQQ, m)
+	return "金镑+1000"
+}
+
+func (b *Bot) redTheater(fromQQ uint64) string {
+	p := b.getPersonFromDb(fromQQ)
+	m := b.getMoneyFromDb(fromQQ, p.ChatCount)
+	e := b.getExternFromDb(fromQQ)
+	if m.Money < 200 {
+		return "你站在红剧场售票厅，盯着票价，攥紧了空荡荡的口袋，穷的掩面而去。"
+	}
+
+	if e.Magic < 100 {
+		return "演出才刚刚开始，你突然一阵头晕目眩，感觉到灵性枯竭预警，立刻退票离开了。"
+	}
+
+	m.Money -= 200
+	e.Magic -= 100
+	p.ChatCount += 80
+
+	b.setMoneyToDb(fromQQ, m)
+	b.setExternToDb(fromQQ, e)
+
+	return "你看了一场酣畅淋漓的演出，感觉自己对这个世界的了解更加深刻了。经验+80"
 }
 
 func (b *Bot) botSwitch(enable bool) string {
