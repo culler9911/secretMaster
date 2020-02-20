@@ -161,24 +161,24 @@ func (b *Bot) moneyUpdate() string {
 	}
 	bind.HasUpdate = true
 	b.setMoneyBind(bind)
-	iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
-	for iter.Next() {
-		fmt.Printf("key:%+v", string(iter.Key()))
-		fmt.Printf("value:%+v", iter.Value())
-		if strings.Index(string(iter.Key()), "money") != -1 {
-			verify := iter.Value()
-			var m Money
-			rlp.DecodeBytes(verify, &m)
-			fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
-			m.Money = m.Money * 240
-			fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+	// iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+	// for iter.Next() {
+	// 	fmt.Printf("key:%+v", string(iter.Key()))
+	// 	fmt.Printf("value:%+v", iter.Value())
+	// 	if strings.Index(string(iter.Key()), "money") != -1 {
+	// 		verify := iter.Value()
+	// 		var m Money
+	// 		rlp.DecodeBytes(verify, &m)
+	// 		fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
+	// 		m.Money = m.Money * 240
+	// 		fmt.Printf("QQ:%d, Money:%d", m.QQ, m.Money)
 
-			b.setMoneyToDb(m.QQ, &m)
-		}
-	}
-	iter.Release()
-	err := iter.Error()
-	fmt.Println(err)
+	// 		b.setMoneyToDb(m.QQ, &m)
+	// 	}
+	// }
+	// iter.Release()
+	// err := iter.Error()
+	// fmt.Println(err)
 	return "升级成功"
 }
 
@@ -278,7 +278,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		if w.DayCnt < 200 || e.Magic > 0 {
 			v.ChatCount++
 			w.DayCnt++
-			m.Money += 240
+			m.Money++
 			if v.ChatCount%100 == 0 {
 				ret += "\n恭喜！你的战力评价升级了！"
 			}
@@ -355,18 +355,18 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	_m := b.getMoneyFromDb(fromQQ, person.ChatCount)
 
 	if !limit {
-		if _m.Money > 100*240 {
-			_m.Money -= (100 * 240)
+		if _m.Money > 100 {
+			_m.Money -= 100
 		} else {
 			return "钱包空空，买不起了哦"
 		}
 	}
 
 	if m >= 0 {
-		_m.Money += uint64(m) * 240
+		_m.Money += uint64(m)
 	} else {
-		if _m.Money > uint64(-1*m)*240 {
-			_m.Money -= uint64(-1*m) * 240
+		if _m.Money > uint64(-1*m) {
+			_m.Money -= uint64(-1 * m)
 		} else {
 			_m.Money = 0
 		}
@@ -457,12 +457,12 @@ func (b *Bot) talkToMe(msg string) bool {
 	return false
 }
 
-func (b *Bot) moneyUnit(money uint64) (uint64, uint64, uint64) {
-	jinbang := money / 240
-	sule := money % 240 / 12
-	lusuo := money % 240 % 12
-	return jinbang, sule, lusuo
-}
+// func (b *Bot) moneyUnit(money uint64) (uint64, uint64, uint64) {
+// 	jinbang := money / 240
+// 	sule := money % 240 / 12
+// 	lusuo := money % 240 % 12
+// 	return jinbang, sule, lusuo
+// }
 
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
@@ -506,25 +506,13 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	bind := b.getMoneyBind()
 	fmt.Printf("%+v", bind)
 	info := ""
-	if bind.HasUpdate {
-		j, s, l := b.moneyUnit(money.Money)
-		info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n现金：%d金镑%d苏勒%d便士\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
-			v.Name, secretName, secretLevelName, v.ChatCount,
-			j, s, l,
-			e.Luck,
-			e.Magic,
-			startTime, fight[myFightIndex], sReLive,
-			b.getRNameFromDb(fromQQ),
-		)
-	} else {
-		info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
-			v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
-			e.Luck,
-			e.Magic,
-			startTime, fight[myFightIndex], sReLive,
-			b.getRNameFromDb(fromQQ),
-		)
-	}
+	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
+		e.Luck,
+		e.Magic,
+		startTime, fight[myFightIndex], sReLive,
+		b.getRNameFromDb(fromQQ),
+	)
 
 	fmt.Print(info)
 	return info
@@ -578,8 +566,8 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 	b.setPersonToDb(fromQQ, v)
 
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 100*240 {
-		money.Money -= 100 * 240
+	if money.Money > 100 {
+		money.Money -= 100
 	}
 	b.setMoneyToDb(fromQQ, money)
 
@@ -632,8 +620,8 @@ func (b *Bot) getRank(fromQQ uint64) string {
 
 	v := b.getPersonFromDb(fromQQ)
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 2*240 {
-		money.Money -= 2 * 240
+	if money.Money > 2 {
+		money.Money -= 2
 	}
 	b.setMoneyToDb(fromQQ, money)
 
