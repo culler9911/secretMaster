@@ -213,7 +213,7 @@ func (b *Bot) moneyMap(msg string) string {
 }
 
 func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
-	if fromQQ != 67939461 && fromQQ != 3459914053 {
+	if fromQQ != 67939461 && fromQQ != 3459914053 && fromQQ != 286361120 {
 		return "对不起，你不是GM，别想欺骗机器人"
 	}
 
@@ -223,11 +223,11 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 	n2, err2 := strconv.Atoi(strs[3])
 
 	if err1 != nil || err2 != nil {
-		return "参数解析错误"
+		return fmt.Sprintf("参数解析错误: 0:%s, 1:%s, 2:%s, 3:%s", strs[0], strs[1], strs[2], strs[3])
 	}
 	switch strs[1] {
 	case "money":
-		m := b.getMoneyFromDb(fromQQ, 0)
+		m := b.getMoneyFromDb(uint64(n2), 0)
 		if n1 > 0 {
 			m.Money += uint64(n1)
 		} else {
@@ -236,7 +236,7 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 		b.setMoneyToDb(uint64(n2), m)
 		return fmt.Sprintf("%d 金镑：%d", n2, n1)
 	case "exp":
-		m := b.getPersonFromDb(fromQQ)
+		m := b.getPersonFromDb(uint64(n2))
 		if n1 > 0 {
 			m.ChatCount += uint64(n1)
 		} else {
@@ -245,7 +245,7 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 		b.setPersonToDb(uint64(n2), m)
 		return fmt.Sprintf("%d 经验：%d", n2, n1)
 	case "magic":
-		m := b.getExternFromDb(fromQQ)
+		m := b.getExternFromDb(uint64(n2))
 		if n1 > 0 {
 			m.Magic += uint64(n1)
 		} else {
