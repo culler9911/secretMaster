@@ -123,3 +123,8 @@ func TestIniRead(t *testing.T) {
 	cfg.Section(cString("67939461")).Key(cString("金币数量")).SetValue(strconv.FormatUint(amount, 10))
 	cfg.SaveTo(iniPath)
 }
+
+func TestUint64(t *testing.T) {
+	n2, err := strconv.Atoi("3459914053")
+	fmt.Println(n2, err)
+}

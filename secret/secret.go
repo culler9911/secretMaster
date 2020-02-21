@@ -220,10 +220,10 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 	strs := strings.Split(msg, ";")
 
 	n1, err1 := strconv.Atoi(strs[2])
-	n2, err2 := strconv.Atoi(strs[3])
+	n2, err2 := strconv.ParseUint(strs[3], 10, 64)
 
 	if err1 != nil || err2 != nil {
-		return fmt.Sprintf("参数解析错误: 0:%s, 1:%s, 2:%s, 3:%s", strs[0], strs[1], strs[2], strs[3])
+		return fmt.Sprintf("参数解析错误: 0:%s, 1:%s, 2:%s, 3:%s, %+v, %+v", strs[0], strs[1], strs[2], strs[3], err1, err2)
 	}
 	switch strs[1] {
 	case "money":
