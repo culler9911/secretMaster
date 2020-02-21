@@ -41,7 +41,7 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 			}
 		}()
 
-		value, _ := strconv.Atoi(strArray[1])
+		value, _ := strconv.ParseUint(strArray[1], 10, 64)
 		fromGroup := int64(value)
 		msg = strArray[0]
 
