@@ -95,13 +95,28 @@ func (b *Bot) searchMenu(msg string, fromQQ uint64, menu *Menu) string {
 			}
 		}
 	}
-
 	return ""
 }
 
 func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
+	if strings.Contains(msg, "序列战争关") {
+		return b.botSwitch(false)
+	}
+
+	if strings.Contains(msg, "序列战争开") {
+		return b.botSwitch(true)
+	}
+
+	if !b.getSwitch() {
+		return ""
+	}
+
 	if strings.Contains(msg, "购买探险卷轴") {
 		return b.adventure(fromQQ, false)
+	}
+
+	if strings.Contains(msg, "购买红剧场门票") {
+		return b.redTheater(fromQQ)
 	}
 
 	if strings.Contains(msg, "属性") {
@@ -113,7 +128,7 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		fmt.Println("查询排名：", rankStr)
 		rank, err := strconv.Atoi(rankStr)
 		if err != nil {
-			return err.Error()
+			return "是找我吗？查询排名要查询加数字哦。如果不是，请不要艾特我。"
 		}
 		if len(b.Rank) > rank-1 {
 			return b.getProperty(b.Rank[rank-1])
@@ -145,7 +160,132 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.setRespectName(msg, fromQQ)
 	}
 
+	if strings.Contains(msg, "GM") {
+		return b.gmCmd(fromQQ, msg)
+	}
+
+	if strings.Contains(msg, "货币升级") {
+		return b.moneyUpdate(true)
+	}
+
+	if strings.Contains(msg, "货币降级") {
+		return b.moneyUpdate(false)
+	}
+
+	if strings.Contains(msg, "货币映射") {
+		return b.moneyMap(msg)
+	}
+
+	if strings.Contains(msg, "查看映射") {
+		bind := b.getMoneyBind()
+		return fmt.Sprintf("%+v\n", bind)
+	}
+
 	return ""
+}
+
+func (b *Bot) moneyUpdate(update bool) string {
+	bind := b.getMoneyBind()
+	if update {
+		if bind.HasUpdate {
+			return "已经升级过了，请不要重复升级"
+		}
+		bind.HasUpdate = true
+		b.setMoneyBind(bind)
+		return "升级成功"
+	}
+
+	bind.HasUpdate = false
+	b.setMoneyBind(bind)
+	return "降级成功，配置保留，但不再读取ini文件"
+}
+
+func (b *Bot) moneyMap(msg string) string {
+	strs := strings.Split(msg, ";")
+	bind := &MoneyBind{}
+	bind.IniPath = strs[1]
+	bind.IniSection = strs[2]
+	bind.IniKey = strs[3]
+	b.setMoneyBind(bind)
+	return fmt.Sprintf("映射成功, Path:%s, Section:%s, Key:%s\n", strs[1], strs[2], strs[3])
+}
+
+func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
+	if fromQQ != 67939461 && fromQQ != 3459914053 && fromQQ != 286361120 {
+		return "对不起，你不是GM，别想欺骗机器人"
+	}
+
+	strs := strings.Split(msg, ";")
+
+	n1, err1 := strconv.Atoi(strs[2])
+	n2, err2 := strconv.ParseUint(strs[3], 10, 64)
+
+	if err1 != nil || err2 != nil {
+		return fmt.Sprintf("参数解析错误: 0:%s, 1:%s, 2:%s, 3:%s, %+v, %+v", strs[0], strs[1], strs[2], strs[3], err1, err2)
+	}
+	switch strs[1] {
+	case "money":
+		m := b.getMoneyFromDb(uint64(n2), 0)
+		if n1 > 0 {
+			m.Money += uint64(n1)
+		} else {
+			m.Money -= uint64(-1 * n1)
+		}
+		b.setMoneyToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 金镑：%d", n2, n1)
+	case "exp":
+		m := b.getPersonFromDb(uint64(n2))
+		if n1 > 0 {
+			m.ChatCount += uint64(n1)
+		} else {
+			m.ChatCount -= uint64(-1 * n1)
+		}
+		b.setPersonToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 经验：%d", n2, n1)
+	case "magic":
+		m := b.getExternFromDb(uint64(n2))
+		if n1 > 0 {
+			m.Magic += uint64(n1)
+		} else {
+			m.Magic -= uint64(-1 * n1)
+		}
+		b.setExternToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 灵性：%d", n2, n1)
+	default:
+		return "参数解析错误"
+	}
+}
+
+func (b *Bot) redTheater(fromQQ uint64) string {
+	p := b.getPersonFromDb(fromQQ)
+	m := b.getMoneyFromDb(fromQQ, p.ChatCount)
+	e := b.getExternFromDb(fromQQ)
+	if m.Money < 200 {
+		return "你站在红剧场售票厅，盯着票价，攥紧了空荡荡的口袋，穷的掩面而去。"
+	}
+
+	if e.Magic < 100 {
+		return "演出才刚刚开始，你突然一阵头晕目眩，感觉到灵性枯竭预警，立刻退票离开了。"
+	}
+
+	m.Money -= 200
+	e.Magic -= 100
+	p.ChatCount += 120
+
+	b.setMoneyToDb(fromQQ, m)
+	b.setExternToDb(fromQQ, e)
+	b.setPersonToDb(fromQQ, p)
+
+	return "你看了一场酣畅淋漓的演出，感觉自己对这个世界的了解更加深刻了。经验+120"
+}
+
+func (b *Bot) botSwitch(enable bool) string {
+	b.setSwitch(enable)
+	if enable {
+		return fmt.Sprintf("已在群%d开启《序列战争》诡秘之主背景小游戏插件。", b.Group)
+	}
+
+	return fmt.Sprintf("已在群%d关闭《序列战争》诡秘之主背景小游戏插件。", b.Group)
 }
 
 func (b *Bot) setRespectName(msg string, fromQQ uint64) string {
@@ -180,6 +320,10 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 }
 
 func (b *Bot) Update(fromQQ uint64, nick string) string {
+	if !b.getSwitch() {
+		return ""
+	}
+
 	key := b.keys(fromQQ)
 	value, err := getDb().Get(key, nil)
 	fmt.Println("value:", value)
@@ -264,7 +408,7 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			case 1:
 				m = -1 * (10 + rand.Intn(41))
 				e = -1 * (10 + rand.Intn(41))
-				info = fmt.Sprintf("%s经验:%d, 金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
+				info = fmt.Sprintf("%s经验:%d, 金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
 			case 2:
 				m = 0
 				e = -1 * (10 + rand.Intn(41))
@@ -272,15 +416,15 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 			case 3:
 				m = -1 * (10 + rand.Intn(41))
 				e = 0
-				info = fmt.Sprintf("%s金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
+				info = fmt.Sprintf("%s金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
 			case 4:
 				m = (20 + rand.Intn(81))
 				e = (20 + rand.Intn(81))
-				info = fmt.Sprintf("%s经验:%d, 金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
+				info = fmt.Sprintf("%s经验:%d, 金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], e, m)
 			case 5:
 				m = (20 + rand.Intn(81))
 				e = 0
-				info = fmt.Sprintf("%s金钱:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
+				info = fmt.Sprintf("%s金镑:%d", adventureEvents[p].Messages[rand.Intn(len(adventureEvents[p].Messages))], m)
 			case 6:
 				m = 0
 				e = (20 + rand.Intn(81))
@@ -400,6 +544,13 @@ func (b *Bot) talkToMe(msg string) bool {
 	return false
 }
 
+// func (b *Bot) moneyUnit(money uint64) (uint64, uint64, uint64) {
+// 	jinbang := money / 240
+// 	sule := money % 240 / 12
+// 	lusuo := money % 240 % 12
+// 	return jinbang, sule, lusuo
+// }
+
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
 	var secretName string
@@ -434,13 +585,15 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	}
 
 	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 2 {
-		money.Money -= 2
-	}
-	b.setMoneyToDb(fromQQ, money)
+	// if money.Money > 2*240 {
+	// 	money.Money -= 2 * 240
+	// }
+	// b.setMoneyToDb(fromQQ, money)
 	e := b.getExternFromDb(fromQQ)
-
-	info := fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+	bind := b.getMoneyBind()
+	fmt.Printf("%+v", bind)
+	info := ""
+	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
 		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
 		e.Luck,
 		e.Magic,

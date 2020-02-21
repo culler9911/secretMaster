@@ -41,7 +41,7 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 			}
 		}()
 
-		value, _ := strconv.Atoi(strArray[1])
+		value, _ := strconv.ParseUint(strArray[1], 10, 64)
 		fromGroup := int64(value)
 		msg = strArray[0]
 
@@ -64,7 +64,7 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 		update := func() {
 			if len(msg) > 9 {
 				fmt.Println(msg, "大于3", len(msg))
-				ret = bot.Update(uint64(fromQQ), info.Name)
+				ret = bot.Update(uint64(fromQQ), GetGroupNickName(&info))
 			} else {
 				fmt.Println(msg, "小于3", len(msg))
 			}
@@ -74,7 +74,7 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 		send()
 		// ret = secret.TickerProc()
 		// send()
-		ret = bot.RunPrivate(msg, uint64(fromQQ), info.Name)
+		ret = bot.RunPrivate(msg, uint64(fromQQ), GetGroupNickName(&info))
 		send()
 
 		return 0
@@ -100,8 +100,9 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 		if len(ret) > 0 {
 			fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
 			time.Sleep(1000)
-			id := cqp.SendGroupMsg(fromGroup, "@"+info.Name+" "+ret)
+			id := cqp.SendGroupMsg(fromGroup, "@"+GetGroupNickName(&info)+" "+ret)
 			fmt.Printf("\nSend finish id:%d\n", id)
+			// fmt.Printf("%+v\n", info)
 			// fmt.Println("private ret:", cqp.SendPrivateMsg(fromQQ, ret))
 		}
 	}
@@ -109,7 +110,7 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 	update := func() {
 		if len(msg) > 9 {
 			fmt.Println(msg, "大于3", len(msg))
-			ret = bot.Update(uint64(fromQQ), info.Name)
+			ret = bot.Update(uint64(fromQQ), GetGroupNickName(&info))
 		} else {
 			fmt.Println(msg, "小于3", len(msg))
 		}
@@ -119,8 +120,16 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 	send()
 	// ret = secret.TickerProc()
 	// send()
-	ret = bot.Run(msg, uint64(fromQQ), info.Name)
+	ret = bot.Run(msg, uint64(fromQQ), GetGroupNickName(&info))
 	send()
 
 	return 0
+}
+
+func GetGroupNickName(info *cqp.GroupMember) string {
+	if len(info.Card) > 0 {
+		return info.Card
+	}
+
+	return info.Name
 }
