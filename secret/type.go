@@ -99,6 +99,8 @@ type Organization struct {
 
 type Store struct {
 	b *Bot
+}
+
 type BotSwitch struct {
 	Group  uint64
 	Enable bool
