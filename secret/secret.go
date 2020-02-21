@@ -135,8 +135,8 @@ func (b *Bot) cmdSwitch(msg string, fromQQ uint64) string {
 		return b.setRespectName(msg, fromQQ)
 	}
 
-	if strings.Contains(msg, "GM加钱") {
-		return b.gmAddMoney(fromQQ)
+	if strings.Contains(msg, "GM") {
+		return b.gmCmd(fromQQ, msg)
 	}
 
 	if strings.Contains(msg, "商店") {
@@ -212,15 +212,50 @@ func (b *Bot) moneyMap(msg string) string {
 	return fmt.Sprintf("映射成功, Path:%s, Section:%s, Key:%s\n", strs[1], strs[2], strs[3])
 }
 
-func (b *Bot) gmAddMoney(fromQQ uint64) string {
-	if fromQQ != 67939461 {
+func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
+	if fromQQ != 67939461 && fromQQ != 3459914053 {
 		return "对不起，你不是GM，别想欺骗机器人"
 	}
 
-	m := b.getMoneyFromDb(fromQQ, 0)
-	m.Money += 1000
-	b.setMoneyToDb(fromQQ, m)
-	return "金镑+1000"
+	strs := strings.Split(msg, ";")
+
+	n1, err1 := strconv.Atoi(strs[2])
+	n2, err2 := strconv.Atoi(strs[3])
+
+	if err1 != nil || err2 != nil {
+		return "参数解析错误"
+	}
+	switch strs[1] {
+	case "money":
+		m := b.getMoneyFromDb(fromQQ, 0)
+		if n1 > 0 {
+			m.Money += uint64(n1)
+		} else {
+			m.Money -= uint64(-1 * n1)
+		}
+		b.setMoneyToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 金镑：%d", n2, n1)
+	case "exp":
+		m := b.getPersonFromDb(fromQQ)
+		if n1 > 0 {
+			m.ChatCount += uint64(n1)
+		} else {
+			m.ChatCount -= uint64(-1 * n1)
+		}
+		b.setPersonToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 经验：%d", n2, n1)
+	case "magic":
+		m := b.getExternFromDb(fromQQ)
+		if n1 > 0 {
+			m.Magic += uint64(n1)
+		} else {
+			m.Magic -= uint64(-1 * n1)
+		}
+		b.setExternToDb(uint64(n2), m)
+		return fmt.Sprintf("%d 灵性：%d", n2, n1)
+	default:
+		return "参数解析错误"
+	}
 }
 
 func (b *Bot) redTheater(fromQQ uint64) string {
@@ -237,12 +272,13 @@ func (b *Bot) redTheater(fromQQ uint64) string {
 
 	m.Money -= 200
 	e.Magic -= 100
-	p.ChatCount += 80
+	p.ChatCount += 120
 
 	b.setMoneyToDb(fromQQ, m)
 	b.setExternToDb(fromQQ, e)
+	b.setPersonToDb(fromQQ, p)
 
-	return "你看了一场酣畅淋漓的演出，感觉自己对这个世界的了解更加深刻了。经验+80"
+	return "你看了一场酣畅淋漓的演出，感觉自己对这个世界的了解更加深刻了。经验+120"
 }
 
 func (b *Bot) botSwitch(enable bool) string {
