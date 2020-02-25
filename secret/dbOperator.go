@@ -277,3 +277,43 @@ func (b *Bot) setMoneyBind(p *MoneyBind) {
 	buf, _ := rlp.EncodeToBytes(p)
 	getDb().Put(b.moneyBindKey(), buf, nil)
 }
+
+// Common DB operate---------
+
+func (b *Bot) groupKey(keyPrefix string) []byte {
+	return []byte(keyPrefix + "_" + strconv.FormatInt(int64(b.Group), 10))
+}
+
+func (b *Bot) setGroupValue(keyPrefix string, p interface{}) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.groupKey(keyPrefix), buf, nil)
+}
+
+func (b *Bot) getGroupValue(keyPrefix string, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(b.groupKey(keyPrefix), nil)
+	if err != nil {
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}
+
+func (b *Bot) personKey(keyPrefix string, fromQQ uint64) []byte {
+	return []byte(keyPrefix + "_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
+}
+
+func (b *Bot) setPersonValue(keyPrefix string, fromQQ uint64, p interface{}) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.personKey(keyPrefix, fromQQ), buf, nil)
+}
+
+func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(b.personKey(keyPrefix, fromQQ), nil)
+	if err != nil {
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}

@@ -24,10 +24,11 @@ type SecretInfo struct {
 }
 
 type Bot struct {
-	QQ    uint64
-	Group uint64
-	Name  string
-	Rank  []uint64
+	QQ      uint64
+	Group   uint64
+	Name    string
+	Rank    []uint64
+	Private bool
 
 	information  *Information
 	career       *Career
@@ -111,4 +112,18 @@ type MoneyBind struct {
 	IniSection string
 	IniKey     string
 	HasUpdate  bool
+}
+
+type Config struct {
+	HaveMaster bool
+	MasterQQ   uint64
+}
+
+type Item struct {
+	Name  string
+	Count int64
+}
+
+type Bag struct {
+	Items []Item
 }
