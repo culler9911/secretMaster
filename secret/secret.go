@@ -364,7 +364,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			e.Magic--
 		}
 
-		if w.DayCnt < 200 || e.Magic > 0 {
+		if w.DayCnt < 200 && e.Magic > 0 {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
