@@ -110,22 +110,10 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 	}
 	switch strs[1] {
 	case "money":
-		m := b.getMoneyFromDb(uint64(n2), 0)
-		if n1 > 0 {
-			m.Money += uint64(n1)
-		} else {
-			m.Money -= uint64(-1 * n1)
-		}
-		b.setMoneyToDb(uint64(n2), m)
+		b.setMoney(n2, n1)
 		return fmt.Sprintf("%d 金镑：%d", n2, n1)
 	case "exp":
-		m := b.getPersonFromDb(uint64(n2))
-		if n1 > 0 {
-			m.ChatCount += uint64(n1)
-		} else {
-			m.ChatCount -= uint64(-1 * n1)
-		}
-		b.setPersonToDb(uint64(n2), m)
+		b.setExp(n2, n1)
 		return fmt.Sprintf("%d 经验：%d", n2, n1)
 	case "magic":
 		m := b.getExternFromDb(uint64(n2))
@@ -136,6 +124,9 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 		}
 		b.setExternToDb(uint64(n2), m)
 		return fmt.Sprintf("%d 灵性：%d", n2, n1)
+	case "god":
+		b.setGodToDb(uint64(n1-1), &n2)
+		return fmt.Sprintf("设置途径%d 神灵：%d", n1, n2)
 	default:
 		return "参数解析错误"
 	}

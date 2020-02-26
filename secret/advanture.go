@@ -12,6 +12,15 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 		return "对不起，您今日奇遇探险机会已经用完"
 	}
 
+	money := b.getMoney(fromQQ)
+	if !limit {
+		if money > 100 {
+			b.setMoney(fromQQ, -100)
+		} else {
+			return "钱包空空，买不起了哦"
+		}
+	}
+
 	a.DayCnt++
 	a.Days = uint64(time.Now().Unix() / (3600 * 24))
 	b.setAdvToDb(fromQQ, a)
@@ -62,39 +71,7 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 		}
 	}
 
-	person := b.getPersonFromDb(fromQQ)
-	_m := b.getMoneyFromDb(fromQQ, person.ChatCount)
-
-	if !limit {
-		if _m.Money > 100 {
-			_m.Money -= 100
-		} else {
-			return "钱包空空，买不起了哦"
-		}
-	}
-
-	if m >= 0 {
-		_m.Money += uint64(m)
-	} else {
-		if _m.Money > uint64(-1*m) {
-			_m.Money -= uint64(-1 * m)
-		} else {
-			_m.Money = 0
-		}
-	}
-
-	if e >= 0 {
-		person.ChatCount += uint64(e)
-	} else {
-		if person.ChatCount > uint64(-1*e) {
-			person.ChatCount -= uint64(-1 * e)
-		} else {
-			person.ChatCount = 0
-		}
-	}
-
-	b.setPersonToDb(fromQQ, person)
-	b.setMoneyToDb(fromQQ, _m)
-
+	b.setMoney(fromQQ, m)
+	b.setExp(fromQQ, e)
 	return info
 }

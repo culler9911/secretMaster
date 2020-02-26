@@ -76,14 +76,19 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		ret = b.levelUpdate(v)
 
 		w := b.getWaterRuleFromDb(fromQQ)
-		m := b.getMoneyFromDb(fromQQ, v.ChatCount)
+		m := b.getMoneyFromDb(fromQQ, 0)
 		e := b.getExternFromDb(fromQQ)
 
 		if e.Magic > 0 {
 			e.Magic--
 		}
 
-		if w.DayCnt < 200 && e.Magic > 0 {
+		normalHumanStop := false
+		if v.SecretID > 22 && v.ChatCount > 400 {
+			normalHumanStop = true
+		}
+
+		if w.DayCnt < 200 && e.Magic > 0 && !normalHumanStop {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
@@ -205,7 +210,7 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.adventure(fromQQ, true)
 	}
 
-	if strings.Contains(msg, "删除人物") {
+	if strings.Contains(msg, "自杀") {
 		return b.deletePerson(fromQQ)
 	}
 
@@ -240,6 +245,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "道具") {
 		return b.getItems(fromQQ)
+	}
+
+	if strings.Contains(msg, "神位") {
+		return b.getGod()
 	}
 
 	return ""

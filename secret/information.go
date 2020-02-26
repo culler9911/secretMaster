@@ -62,26 +62,26 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 
 	startTime = fmt.Sprintf("%d小时", (time.Now().Unix()-time.Unix(int64(v.JoinTime), 0).Unix())/3600)
 	// startTime = time.Unix(int64(v.JoinTime), 0).Format("2006-01-02 15:04:05")
-
-	myFightIndex := v.ChatCount / 100
+	exp := b.getExp(fromQQ)
+	myFightIndex := exp / 100
 	reLive := uint64(0)
 	sReLive := ""
 	if myFightIndex > 99 {
-		myFightIndex = v.ChatCount / 100 % 100
-		reLive = v.ChatCount / uint64(10000)
+		myFightIndex = exp / 100 % 100
+		reLive = exp / uint64(10000)
 		if reLive > 0 {
 			sReLive = fmt.Sprintf("(转生+%d)", reLive)
 		}
 	}
 
-	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
+	money := b.getMoney(fromQQ)
 
 	e := b.getExternFromDb(fromQQ)
 	bind := b.getMoneyBind()
 	fmt.Printf("%+v", bind)
 	info := ""
 	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
-		v.Name, secretName, secretLevelName, v.ChatCount, money.Money,
+		v.Name, secretName, secretLevelName, exp, money,
 		e.Luck,
 		e.Magic,
 		startTime, fight[myFightIndex], sReLive,
@@ -132,13 +132,7 @@ func (b *Bot) getRank(fromQQ uint64) string {
 		}
 	}
 
-	v := b.getPersonFromDb(fromQQ)
-	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 2 {
-		money.Money -= 2
-	}
-	b.setMoneyToDb(fromQQ, money)
-
+	b.setMoney(fromQQ, -2)
 	return retValue
 }
 
@@ -152,6 +146,80 @@ func (b *Bot) getItems(fromQQ uint64) string {
 	info := ""
 	for i := 0; i < len(bag.(*Bag).Items); i++ {
 		info += fmt.Sprintf("%s x%d", bag.(*Bag).Items[i].Name, bag.(*Bag).Items[i].Count)
+	}
+	return info
+}
+
+func (b *Bot) setExp(fromQQ uint64, v int) {
+	person := b.getPersonFromDb(fromQQ)
+	if v >= 0 {
+		person.ChatCount += uint64(v)
+	} else {
+		if person.ChatCount > uint64(-1*v) {
+			person.ChatCount -= uint64(-1 * v)
+		} else {
+			person.ChatCount = 0
+		}
+	}
+	b.setPersonToDb(fromQQ, person)
+}
+
+func (b *Bot) getExp(fromQQ uint64) uint64 {
+	person := b.getPersonFromDb(fromQQ)
+	return person.ChatCount
+}
+
+func (b *Bot) setMoney(fromQQ uint64, v int) {
+	money := b.getMoneyFromDb(fromQQ, 0)
+	if v >= 0 {
+		money.Money += uint64(v)
+	} else {
+		if money.Money > uint64(-1*v) {
+			money.Money -= uint64(-1 * v)
+		} else {
+			money.Money = 0
+		}
+	}
+	b.setMoneyToDb(fromQQ, money)
+}
+
+func (b *Bot) getMoney(fromQQ uint64) uint64 {
+	money := b.getMoneyFromDb(fromQQ, 0)
+	return money.Money
+}
+
+func (b *Bot) setMagic(fromQQ uint64, v int) {
+	e := b.getExternFromDb(fromQQ)
+	if e.Magic >= 0 {
+		e.Magic += uint64(v)
+	} else {
+		if e.Magic > uint64(-1*v) {
+			e.Magic -= uint64(-1 * v)
+		} else {
+			e.Magic = 0
+		}
+	}
+	b.setExternToDb(fromQQ, e)
+}
+
+func (b *Bot) getMagic(fromQQ uint64) uint64 {
+	e := b.getExternFromDb(fromQQ)
+	return e.Magic
+}
+
+func (b *Bot) getGod() string {
+	info := "\n"
+	for i := 0; i < 22; i++ {
+		god := b.getGodFromDb(uint64(i))
+		godName := ""
+		if god == 0 {
+			godName = "空"
+		} else {
+			p := b.getPersonFromDb(god)
+			godName = p.Name
+		}
+
+		info += fmt.Sprintf("%d - %s: %s\n", i+1, secretInfo[i].SecretName, godName)
 	}
 	return info
 }

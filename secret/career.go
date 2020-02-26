@@ -105,14 +105,16 @@ func (b *Bot) changeSecretList(msgRaw string, fromQQ uint64) string {
 		return "很抱歉，非凡者只能在相近途径互相转换"
 	}
 
+	god := b.getGodFromDb(v.SecretID)
+	if god == 0 || god == v.QQ {
+		god = 0
+		b.setGodToDb(v.SecretID, &god)
+	}
+
 	v.SecretID = uint64(value - 1)
 	b.setPersonToDb(fromQQ, v)
 
-	money := b.getMoneyFromDb(fromQQ, v.ChatCount)
-	if money.Money > 100 {
-		money.Money -= 100
-	}
-	b.setMoneyToDb(fromQQ, money)
+	b.setMoney(fromQQ, -100)
 
 	return fmt.Sprintf("成功更换到途径：%d", value)
 }
