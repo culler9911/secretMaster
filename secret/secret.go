@@ -251,6 +251,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.getGod()
 	}
 
+	if strings.Contains(msg, "灵性药剂") {
+		return b.buyMagicPotion(fromQQ)
+	}
+
 	return ""
 }
 

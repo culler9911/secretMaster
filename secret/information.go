@@ -137,10 +137,9 @@ func (b *Bot) getRank(fromQQ uint64) string {
 }
 
 func (b *Bot) getItems(fromQQ uint64) string {
-	// bag := b.getPersonValue("Item", fromQQ, &Bag{Items: []Item{{"布衣", 1}}})
 	bag := b.getPersonValue("Item", fromQQ, &Bag{})
 	if len(bag.(*Bag).Items) == 0 {
-		return "你的背包空空如也，没有一丝尘土。"
+		return "你的背包空空如也，干净的没有一丝尘土。"
 	}
 
 	info := ""

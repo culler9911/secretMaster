@@ -127,3 +127,8 @@ type Item struct {
 type Bag struct {
 	Items []Item
 }
+
+type Potion struct {
+	DayCnt uint64
+	Days   uint64
+}
