@@ -91,3 +91,11 @@ func (b *Bot) buyMace(fromQQ uint64) string {
 	b.setMoney(fromQQ, -1000)
 	return "你精心挑选了一份外表精致的至高权杖，把它买回家。"
 }
+
+func (b *Bot) useItem(fromQQ uint64, name string) bool {
+	bag := b.getPersonValue("Bag", fromQQ, &Bag{}).(*Bag)
+	for i := 0; i < len(bag.Items); i++ {
+
+	}
+	return true
+}

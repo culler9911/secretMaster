@@ -242,5 +242,5 @@ func (b *Bot) getSkill(fromQQ uint64) string {
 	for i := 0; i < len(tree.Skills); i++ {
 		info += fmt.Sprintf("%s lv%d; ", tree.Skills[i].Name, tree.Skills[i].Level)
 	}
-	return info + "\n"
+	return info
 }

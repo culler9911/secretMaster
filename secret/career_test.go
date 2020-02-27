@@ -36,3 +36,16 @@ func TestSkill(t *testing.T) {
 
 	fmt.Println(b.getSkill(fromQQ))
 }
+
+func TestPromotion(t *testing.T) {
+	fromQQ := uint64(111)
+	b := NewSecretBot(1234, 4567, "aa", false, &debugInteract{})
+	fmt.Println(b.deletePerson(fromQQ))
+	b.Update(fromQQ, "空想之喵")
+	fmt.Println(b.promotion(fromQQ))
+	fmt.Println(b.changeSecretList("更换1", fromQQ))
+	b.Update(fromQQ, "空想之喵")
+	b.setExp(fromQQ, 101)
+	fmt.Println(b.promotion(fromQQ))
+
+}

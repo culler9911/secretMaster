@@ -2,6 +2,8 @@ package secret
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
@@ -59,6 +61,54 @@ func (b *Bot) levelUpdate(p *Person) string {
 	}
 
 	return ret
+}
+
+func (b *Bot) promotion(fromQQ uint64) string {
+	p := b.getPersonFromDb(fromQQ)
+	if p.SecretID > 22 || p.ChatCount < 50 {
+		return "你只是个普通人，乱喝魔药会死的。"
+	}
+
+	p.SecretLevel = 0
+
+	if p.SecretLevel == 9 {
+		return "前方已经没有道路，您已是序列之尊神。"
+	}
+
+	if p.ChatCount < uint64(100*(math.Pow(2, float64(p.SecretLevel)))) {
+		return "对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。"
+	}
+
+	info := "\n"
+	info += fmt.Sprintf("你当前的途径为：%s，序列为：序列%d - %s\n", secretInfo[p.SecretID].SecretName, 9-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel])
+
+	magicPotionPrice := 100 + 300*p.SecretLevel
+
+	info += fmt.Sprintf("序列%d - %s 魔药的售价为:%d\n", 8-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel+1], magicPotionPrice)
+	if b.getMoney(fromQQ) < magicPotionPrice {
+		return info + "你的口袋空空如也，老板一眼就看穿了你的处境，把你赶了出去。"
+	}
+	b.setMoney(fromQQ, -1*int(magicPotionPrice))
+
+	info += "你千辛万苦，终于买到了合适的魔药。\n"
+
+	info += "你静下心来，沐浴焚香，拿出辛苦得来的魔药。\n"
+	successRate := 20
+
+	if !b.useItem(fromQQ, "灵性材料") {
+		info += "你看着桌面上的材料，总感觉好像少了点什么。算了，不管了。你一口喝下了魔药，等待晋升。\n"
+	} else {
+		info += "你取出了一份精心准备的灵性材料，严肃认真的举行仪式，然后一口喝下了魔药。\n"
+		successRate = 60
+	}
+
+	r := rand.Intn(100)
+	if r < successRate {
+		return info + "在撑过一阵可怕的幻象之后，你晋升成功了。" + b.allSkillLevelUp(fromQQ)
+	}
+
+	b.setExp(fromQQ, -100)
+	return info + "在一阵头晕目眩后，你晋升失败了。"
 }
 
 func (b *Bot) getSecretList() string {
