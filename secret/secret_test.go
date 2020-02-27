@@ -13,7 +13,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	b := NewSecretBot(3334, 333, "cat")
+	b := NewSecretBot(3334, 333, "cat", false, &debugInteract{})
 	fmt.Println(b.Run("@cat 属性", 112, "mm"))
 }
 

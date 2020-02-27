@@ -121,14 +121,24 @@ type Config struct {
 
 type Item struct {
 	Name  string
-	Count int64
+	Count uint64
 }
 
 type Bag struct {
-	Items []Item
+	Items []*Item
 }
 
 type Potion struct {
 	DayCnt uint64
 	Days   uint64
+}
+
+type Skill struct {
+	ID       uint64
+	Name     string
+	Level    uint64
+	MaxLevel uint64
+}
+type SkillTree struct {
+	Skills []*Skill
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
 	"github.com/molin0000/secretMaster/secret"
+	"github.com/molin0000/secretMaster/interact"
 )
 
 //go:generate cqcfg -c .
@@ -46,7 +47,7 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 		info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 		selfQQ := cqp.GetLoginQQ()
 		selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
-		bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, true)
+		bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, true, &interact.Interact{})
 		ret := ""
 
 		send := func() {
@@ -91,7 +92,7 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 	selfQQ := cqp.GetLoginQQ()
 	selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
-	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, false)
+	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, false, &interact.Interact{})
 	ret := ""
 
 	send := func() {

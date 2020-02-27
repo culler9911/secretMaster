@@ -47,6 +47,8 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	var secretLevelName string
 	var startTime string
 
+	fmt.Println(v)
+
 	if v.SecretID > 22 {
 		secretName = "普通人"
 	} else {
@@ -75,6 +77,7 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	}
 
 	money := b.getMoney(fromQQ)
+	fmt.Println(money)
 
 	e := b.getExternFromDb(fromQQ)
 	bind := b.getMoneyBind()
@@ -137,14 +140,14 @@ func (b *Bot) getRank(fromQQ uint64) string {
 }
 
 func (b *Bot) getItems(fromQQ uint64) string {
-	bag := b.getPersonValue("Item", fromQQ, &Bag{})
+	bag := b.getPersonValue("Bag", fromQQ, &Bag{})
 	if len(bag.(*Bag).Items) == 0 {
 		return "你的背包空空如也，干净的没有一丝尘土。"
 	}
 
-	info := ""
+	info := "\n"
 	for i := 0; i < len(bag.(*Bag).Items); i++ {
-		info += fmt.Sprintf("%s x%d", bag.(*Bag).Items[i].Name, bag.(*Bag).Items[i].Count)
+		info += fmt.Sprintf("%s x%d; ", bag.(*Bag).Items[i].Name, bag.(*Bag).Items[i].Count)
 	}
 	return info
 }
@@ -221,4 +224,17 @@ func (b *Bot) getGod() string {
 		info += fmt.Sprintf("%d - %s: %s\n", i+1, secretInfo[i].SecretName, godName)
 	}
 	return info
+}
+
+func (b *Bot) getSkill(fromQQ uint64) string {
+	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
+	if len(tree.Skills) == 0 {
+		return "\n你没有任何技能，努力吧少年(少女)。\n"
+	}
+
+	info := "\n"
+	for i := 0; i < len(tree.Skills); i++ {
+		info += fmt.Sprintf("%s lv%d; ", tree.Skills[i].Name, tree.Skills[i].Level)
+	}
+	return info + "\n"
 }

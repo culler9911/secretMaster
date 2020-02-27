@@ -242,12 +242,14 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
 
-	p := b.getPersonFromDb(fromQQ)
-	if p.SecretID == 17 {
-		if v.Luck < 5 {
-			v.Luck += 5
+	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
+	for i := 0; i < len(tree.Skills); i++ {
+		if tree.Skills[i].Name == skillList[0].Name {
+			v.Luck = tree.Skills[i].Level
+			break
 		}
 	}
+
 	return &v
 }
 
@@ -304,13 +306,17 @@ func (b *Bot) personKey(keyPrefix string, fromQQ uint64) []byte {
 }
 
 func (b *Bot) setPersonValue(keyPrefix string, fromQQ uint64, p interface{}) {
-	buf, _ := rlp.EncodeToBytes(p)
+	buf, err := rlp.EncodeToBytes(p)
+	if err != nil {
+		fmt.Println(err)
+	}
 	getDb().Put(b.personKey(keyPrefix, fromQQ), buf, nil)
 }
 
 func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue interface{}) interface{} {
 	data, err := getDb().Get(b.personKey(keyPrefix, fromQQ), nil)
 	if err != nil {
+		fmt.Println("数据库中没有这个字段:", b.personKey(keyPrefix, fromQQ))
 		return defaultValue
 	}
 

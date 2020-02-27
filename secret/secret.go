@@ -9,7 +9,8 @@ import (
 
 var botMap map[uint64]*Bot
 
-func NewSecretBot(qq, group uint64, groupNick string, private bool) *Bot {
+func NewSecretBot(qq, group uint64, groupNick string, private bool, api interface{}) *Bot {
+	setCqpCall(api.(CqpCall))
 	if botMap == nil {
 		botMap = make(map[uint64]*Bot)
 	}
@@ -253,6 +254,18 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "灵性药剂") {
 		return b.buyMagicPotion(fromQQ)
+	}
+
+	if strings.Contains(msg, "灵性材料") {
+		return b.buyMagicItem(fromQQ)
+	}
+
+	if strings.Contains(msg, "至高权杖") {
+		return b.buyMace(fromQQ)
+	}
+
+	if strings.Contains(msg, "技能") {
+		return b.getSkill(fromQQ)
 	}
 
 	return ""

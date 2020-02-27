@@ -4,27 +4,15 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
 )
-
-func isGroupAdmin(group, qq uint64) bool {
-	member := cqp.GetGroupMemberInfo(int64(group), int64(qq), true)
-	return member.Auth > 1
-}
-
-func isGroupMaster(group, qq uint64) bool {
-	member := cqp.GetGroupMemberInfo(int64(group), int64(qq), true)
-	return member.Auth > 2
-}
 
 func (b *Bot) setMaster(fromQQ uint64, msg string) string {
 	cfg := b.getGroupValue("Config", &Config{})
-	if cfg.(*Config).HaveMaster && !isGroupMaster(b.Group, fromQQ) {
+	if cfg.(*Config).HaveMaster && !cqpCall.IsGroupMaster(b.Group, fromQQ) {
 		return "Master已经配置，只有群主可以修改"
 	}
 
-	if !isGroupAdmin(b.Group, fromQQ) {
+	if !cqpCall.IsGroupAdmin(b.Group, fromQQ) {
 		return "只有群主或管理员可以设置.master"
 	}
 

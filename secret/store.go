@@ -41,3 +41,53 @@ func (b *Bot) buyMagicPotion(fromQQ uint64) string {
 
 	return "喝下这瓶药剂后，你满嘴苦涩，灵性似乎恢复了一点。"
 }
+
+func (b *Bot) buyMagicItem(fromQQ uint64) string {
+	if b.getMoney(fromQQ) < 50 {
+		return "你盯着商品报价，攥紧了空荡荡的钱包，穷的掩面而去。"
+	}
+
+	bag := b.getPersonValue("Bag", fromQQ, &Bag{})
+	find := false
+	for i := 0; i < len(bag.(*Bag).Items); i++ {
+		if bag.(*Bag).Items[i].Name == "灵性材料" {
+			find = true
+			bag.(*Bag).Items[i].Count++
+			break
+		}
+	}
+
+	if !find {
+		bag.(*Bag).Items = append(bag.(*Bag).Items, &Item{"灵性材料", 1})
+	}
+	b.setPersonValue("Bag", fromQQ, bag)
+	b.setMoney(fromQQ, -50)
+	return "你精心挑选了一份外表精致的灵性材料，把它买回家。"
+}
+
+func (b *Bot) clearItem(fromQQ uint64) {
+	b.setPersonValue("Bag", fromQQ, &Bag{})
+}
+
+func (b *Bot) buyMace(fromQQ uint64) string {
+	if b.getMoney(fromQQ) < 1000 {
+		return "你盯着商品报价，攥紧了空荡荡的钱包，穷的掩面而去。"
+	}
+
+	bag := b.getPersonValue("Bag", fromQQ, &Bag{})
+	find := false
+	for i := 0; i < len(bag.(*Bag).Items); i++ {
+		if bag.(*Bag).Items[i].Name == "至高权杖" {
+			find = true
+			bag.(*Bag).Items[i].Count++
+			break
+		}
+	}
+
+	if !find {
+		bag.(*Bag).Items = append(bag.(*Bag).Items, &Item{"至高权杖", 1})
+	}
+	b.setPersonValue("Bag", fromQQ, bag)
+	b.setMoney(fromQQ, -1000)
+	return "你精心挑选了一份外表精致的至高权杖，把它买回家。"
+}
