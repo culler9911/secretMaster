@@ -78,7 +78,9 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 
 		w := b.getWaterRuleFromDb(fromQQ)
 		m := b.getMoneyFromDb(fromQQ, 0)
+		fmt.Printf("money:%+v", m)
 		e := b.getExternFromDb(fromQQ)
+		fmt.Printf("extern:%+v", e)
 
 		if e.Magic > 0 {
 			e.Magic--

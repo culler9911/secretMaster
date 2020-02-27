@@ -15,6 +15,9 @@ import (
 func TestRun(t *testing.T) {
 	b := NewSecretBot(3334, 333, "cat", false, &debugInteract{})
 	fmt.Println(b.Run("@cat 属性", 112, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=2960213278] 属性", 67939461, "mm"))
+	fmt.Println(b.getProperty(112))
+	fmt.Println(b.Update(112, "mm"))
 }
 
 func TestRlp(t *testing.T) {

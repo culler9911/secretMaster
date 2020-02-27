@@ -145,7 +145,7 @@ func (b *Bot) setSkill(fromQQ, skill uint64, level uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	find := false
 	for i := 0; i < len(tree.Skills); i++ {
-		if tree.Skills[i].Name == skillList[skill].Name {
+		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[skill].Name {
 			if level <= tree.Skills[i].MaxLevel {
 				tree.Skills[i].Level = level
 			} else {
@@ -165,7 +165,7 @@ func (b *Bot) setSkill(fromQQ, skill uint64, level uint64) {
 func (b *Bot) removeSkill(fromQQ, skill uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	for i := 0; i < len(tree.Skills); i++ {
-		if tree.Skills[i].Name == skillList[skill].Name {
+		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[skill].Name {
 			tree.Skills[i] = tree.Skills[len(tree.Skills)-1] // Copy last element to index i.
 			tree.Skills[len(tree.Skills)-1] = nil            // Erase last element (write zero value).
 			tree.Skills = tree.Skills[:len(tree.Skills)-1]   // Truncate slice.
@@ -183,7 +183,7 @@ func (b *Bot) skillLevelUp(fromQQ uint64, skill uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	find := false
 	for i := 0; i < len(tree.Skills); i++ {
-		if tree.Skills[i].ID == skill {
+		if tree.Skills[i] != nil && tree.Skills[i].ID == skill {
 			if tree.Skills[i].Level <= tree.Skills[i].MaxLevel {
 				tree.Skills[i].Level++
 			} else {
@@ -204,7 +204,7 @@ func (b *Bot) allSkillLevelUp(fromQQ uint64) string {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	if len(tree.Skills) > 0 {
 		for i := 0; i < len(tree.Skills); i++ {
-			if tree.Skills[i].Level < tree.Skills[i].MaxLevel {
+			if tree.Skills[i] != nil && tree.Skills[i].Level < tree.Skills[i].MaxLevel {
 				tree.Skills[i].Level++
 			} else {
 				tree.Skills[i].Level = tree.Skills[i].MaxLevel

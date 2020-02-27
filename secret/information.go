@@ -38,6 +38,10 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.externKey(fromQQ), nil)
 	getDb().Delete(b.rnameKey(fromQQ), nil)
 
+	getDb().Delete(b.personKey("Bag", fromQQ), nil)
+	getDb().Delete(b.personKey("Potion", fromQQ), nil)
+	getDb().Delete(b.personKey("SkillTree", fromQQ), nil)
+
 	return "人物删除成功"
 }
 
@@ -76,8 +80,9 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		}
 	}
 
+	fmt.Println("get money", fromQQ)
 	money := b.getMoney(fromQQ)
-	fmt.Println(money)
+	fmt.Println("money", money)
 
 	e := b.getExternFromDb(fromQQ)
 	bind := b.getMoneyBind()
@@ -187,6 +192,7 @@ func (b *Bot) setMoney(fromQQ uint64, v int) {
 
 func (b *Bot) getMoney(fromQQ uint64) uint64 {
 	money := b.getMoneyFromDb(fromQQ, 0)
+	fmt.Printf("%+v", money)
 	return money.Money
 }
 
