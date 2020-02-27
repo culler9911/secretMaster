@@ -26,7 +26,7 @@ func (b *Bot) buyMagicPotion(fromQQ uint64) string {
 	}
 
 	if b.getMoney(fromQQ) < 70 {
-		return "你盯着票价报价，攥紧了空荡荡的口袋，穷的掩面而去。"
+		return "你盯着商品报价，攥紧了空荡荡的钱包，穷的掩面而去。"
 	}
 
 	if potion.(*Potion).DayCnt >= 3 && potion.(*Potion).Days == uint64(time.Now().Unix()/3600/24) {
