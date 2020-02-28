@@ -30,6 +30,8 @@ type Bot struct {
 	Rank    []uint64
 	Private bool
 
+	CurrentNick string
+
 	information  *Information
 	career       *Career
 	organization *Organization
@@ -141,4 +143,19 @@ type Skill struct {
 }
 type SkillTree struct {
 	Skills []*Skill
+}
+
+type ChurchInfo struct {
+	Name        string
+	Commit      string
+	Skills      []*Skill
+	CreatorQQ   uint64
+	Money       uint64
+	MaxMember   uint64
+	Level       uint64
+	CreateMoney uint64
+}
+
+type Churchs struct {
+	ChurchList []*ChurchInfo
 }

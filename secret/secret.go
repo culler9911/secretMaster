@@ -34,6 +34,8 @@ func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
 		return ""
 	}
 
+	b.CurrentNick = nick
+
 	return b.searchMenu(msg, fromQQ, &menus)
 }
 
@@ -272,6 +274,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "晋升") {
 		return b.promotion(fromQQ)
+	}
+
+	if strings.Contains(msg, "创建") {
+		return b.createChurch(fromQQ, msg)
 	}
 
 	return ""
