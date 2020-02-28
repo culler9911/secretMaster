@@ -69,24 +69,30 @@ func (b *Bot) promotion(fromQQ uint64) string {
 		return "你只是个普通人，乱喝魔药会死的。"
 	}
 
-	p.SecretLevel = 0
-
 	if p.SecretLevel == 9 {
 		return "前方已经没有道路，您已是序列之尊神。"
+	}
+
+	info := "\n"
+
+	if p.SecretLevel > 10 && p.ChatCount > 50 {
+		info += "终于要成为非凡者了，你怀着激动的心情，喝下了此生第一瓶魔药。\n"
+		p.SecretLevel = 0
+		b.setPersonToDb(fromQQ, p)
+		return info + "你成功了，你成为了非凡者。"
 	}
 
 	if p.ChatCount < uint64(100*(math.Pow(2, float64(p.SecretLevel)))) {
 		return "对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。"
 	}
 
-	info := "\n"
-	info += fmt.Sprintf("你当前的途径为：%s，序列为：序列%d - %s\n", secretInfo[p.SecretID].SecretName, 9-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel])
+	info += fmt.Sprintf("你当前的途径为：%s - 序列%d%s\n", secretInfo[p.SecretID].SecretName, 9-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel])
 
-	magicPotionPrice := 100 + 300*p.SecretLevel
+	magicPotionPrice := 200 + 300*p.SecretLevel
 
-	info += fmt.Sprintf("序列%d - %s 魔药的售价为:%d\n", 8-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel+1], magicPotionPrice)
+	info += fmt.Sprintf("序列%d%s的魔药售价为:%d金镑\n", 8-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel+1], magicPotionPrice)
 	if b.getMoney(fromQQ) < magicPotionPrice {
-		return info + "你的口袋空空如也，老板一眼就看穿了你的处境，把你赶了出去。"
+		return info + "你囊中羞涩，老板一眼就看穿了你的窘境，把你赶了出去。"
 	}
 	b.setMoney(fromQQ, -1*int(magicPotionPrice))
 
@@ -104,6 +110,8 @@ func (b *Bot) promotion(fromQQ uint64) string {
 
 	r := rand.Intn(100)
 	if r < successRate {
+		p.SecretLevel++
+		b.setPersonToDb(fromQQ, p)
 		return info + "在撑过一阵可怕的幻象之后，你晋升成功了。" + b.allSkillLevelUp(fromQQ)
 	}
 
@@ -216,9 +224,17 @@ func (b *Bot) removeSkill(fromQQ, skill uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	for i := 0; i < len(tree.Skills); i++ {
 		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[skill].Name {
-			tree.Skills[i] = tree.Skills[len(tree.Skills)-1] // Copy last element to index i.
-			tree.Skills[len(tree.Skills)-1] = nil            // Erase last element (write zero value).
-			tree.Skills = tree.Skills[:len(tree.Skills)-1]   // Truncate slice.
+			// tree.Skills[i] = tree.Skills[len(tree.Skills)-1] // Copy last element to index i.
+			// tree.Skills[len(tree.Skills)-1] = nil            // Erase last element (write zero value).
+			// tree.Skills = tree.Skills[:len(tree.Skills)-1]   // Truncate slice.
+			// tree.Skills = append(tree.Skills[:i], tree.Skills[i+1:]...)
+
+			if len(tree.Skills) > 1 {
+				tree.Skills[i] = tree.Skills[len(tree.Skills)-1]
+				tree.Skills = tree.Skills[:len(tree.Skills)-1]
+			} else {
+				tree.Skills = nil
+			}
 			break
 		}
 	}

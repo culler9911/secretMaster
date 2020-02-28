@@ -74,7 +74,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 	} else {
 		v := b.getPersonFromDb(fromQQ)
 
-		ret = b.levelUpdate(v)
+		// ret = b.levelUpdate(v)
 
 		w := b.getWaterRuleFromDb(fromQQ)
 		m := b.getMoneyFromDb(fromQQ, 0)
@@ -172,11 +172,11 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return ""
 	}
 
-	if strings.Contains(msg, "购买探险卷轴") {
+	if strings.Contains(msg, "探险卷轴") {
 		return b.adventure(fromQQ, false)
 	}
 
-	if strings.Contains(msg, "购买红剧场门票") {
+	if strings.Contains(msg, "红剧场门票") {
 		return b.redTheater(fromQQ)
 	}
 
@@ -268,6 +268,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 
 	if strings.Contains(msg, "技能") {
 		return b.getSkill(fromQQ)
+	}
+
+	if strings.Contains(msg, "晋升") {
+		return b.promotion(fromQQ)
 	}
 
 	return ""

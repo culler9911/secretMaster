@@ -41,11 +41,26 @@ func TestPromotion(t *testing.T) {
 	fromQQ := uint64(111)
 	b := NewSecretBot(1234, 4567, "aa", false, &debugInteract{})
 	fmt.Println(b.deletePerson(fromQQ))
-	b.Update(fromQQ, "空想之喵")
+	b.Update(fromQQ, "ThinkCat")
 	fmt.Println(b.promotion(fromQQ))
 	fmt.Println(b.changeSecretList("更换1", fromQQ))
-	b.Update(fromQQ, "空想之喵")
+	b.Update(fromQQ, "ThinkCat")
 	b.setExp(fromQQ, 101)
 	fmt.Println(b.promotion(fromQQ))
+	b.setMoney(fromQQ, 200)
+	b.buyMagicItem(fromQQ)
+	fmt.Println(b.promotion(fromQQ))
+	b.setExp(fromQQ, 101)
+	b.setMoney(fromQQ, 200)
+	b.buyMagicItem(fromQQ)
+	fmt.Println(b.getMoney(fromQQ), b.getExp(fromQQ))
+	fmt.Println(b.promotion(fromQQ))
 
+	for i := 0; i < 1000; i++ {
+		b.setMoney(fromQQ, 200)
+		b.setExp(fromQQ, 101)
+
+		fmt.Println(b.getMoney(fromQQ), b.getExp(fromQQ))
+		fmt.Println(b.promotion(fromQQ))
+	}
 }

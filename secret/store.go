@@ -94,8 +94,25 @@ func (b *Bot) buyMace(fromQQ uint64) string {
 
 func (b *Bot) useItem(fromQQ uint64, name string) bool {
 	bag := b.getPersonValue("Bag", fromQQ, &Bag{}).(*Bag)
-	for i := 0; i < len(bag.Items); i++ {
-
+	if len(bag.Items) == 0 {
+		return false
 	}
-	return true
+
+	for i := 0; i < len(bag.Items); i++ {
+		if bag.Items[i].Name == name {
+			if bag.Items[i].Count > 1 {
+				bag.Items[i].Count--
+			} else {
+				if len(bag.Items) > 1 {
+					bag.Items[i] = bag.Items[len(bag.Items)-1]
+					bag.Items = bag.Items[:len(bag.Items)-1]
+				} else {
+					bag.Items = nil
+				}
+			}
+			b.setPersonValue("Bag", fromQQ, bag)
+			return true
+		}
+	}
+	return false
 }

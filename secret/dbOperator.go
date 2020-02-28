@@ -322,7 +322,7 @@ func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue inter
 	data, err := getDb().Get(b.personKey(keyPrefix, fromQQ), nil)
 	fmt.Printf("getPersonValue, %s, %d, %+v, %v", keyPrefix, fromQQ, data, err)
 	if err != nil {
-		fmt.Println("数据库中没有这个字段:", b.personKey(keyPrefix, fromQQ))
+		fmt.Println("数据库中没有这个字段:", keyPrefix, b.personKey(keyPrefix, fromQQ))
 		return defaultValue
 	}
 
