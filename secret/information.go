@@ -42,10 +42,10 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.personKey("Potion", fromQQ), nil)
 	getDb().Delete(b.personKey("SkillTree", fromQQ), nil)
 
-	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
-	for _, c := range churchs.ChurchList {
+	// churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	// for _, c := range churchs.ChurchList {
 
-	}
+	// }
 
 	return "人物删除成功"
 }
