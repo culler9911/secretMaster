@@ -42,10 +42,18 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.personKey("Potion", fromQQ), nil)
 	getDb().Delete(b.personKey("SkillTree", fromQQ), nil)
 
-	// churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
-	// for _, c := range churchs.ChurchList {
-
-	// }
+	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	for i, c := range churchs.ChurchList {
+		if c.CreatorQQ == fromQQ {
+			if len(churchs.ChurchList) > 1 {
+				churchs.ChurchList[i] = churchs.ChurchList[len(churchs.ChurchList)-1]
+				churchs.ChurchList = churchs.ChurchList[:len(churchs.ChurchList)-1]
+			} else {
+				churchs.ChurchList = nil
+			}
+			b.setGroupValue("Churchs", churchs)
+		}
+	}
 
 	return "人物删除成功"
 }

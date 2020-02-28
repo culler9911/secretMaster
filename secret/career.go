@@ -7,70 +7,71 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
-func (b *Bot) levelUpdate(p *Person) string {
-	if p.SecretID > 22 {
-		return ""
-	}
+type unuseCode struct {
+	// func (b *Bot) levelUpdate(p *Person) string {
+	// 	if p.SecretID > 22 {
+	// 		return ""
+	// 	}
 
-	ret := ""
-	levelOld := p.SecretLevel
-	god := b.getGodFromDb(p.SecretID)
-	if p.ChatCount > 10000 {
-		if god == 0 || god == p.QQ {
-			b.setGodToDb(p.SecretID, &p.QQ)
-			p.SecretLevel = 9
-		}
-	} else if p.ChatCount > 8000 {
-		if god == 0 {
-			p.SecretLevel = 8
-		}
-	} else if p.ChatCount > 5500 {
-		p.SecretLevel = 7
-	} else if p.ChatCount > 3000 {
-		p.SecretLevel = 6
-	} else if p.ChatCount > 1500 {
-		p.SecretLevel = 5
-	} else if p.ChatCount > 1000 {
-		p.SecretLevel = 4
-	} else if p.ChatCount > 800 {
-		p.SecretLevel = 3
-	} else if p.ChatCount > 400 {
-		p.SecretLevel = 2
-	} else if p.ChatCount > 200 {
-		p.SecretLevel = 1
-	} else if p.ChatCount > 50 {
-		p.SecretLevel = 0
-	} else {
-		p.SecretLevel = 99
-	}
+	// 	ret := ""
+	// 	levelOld := p.SecretLevel
+	// 	god := b.getGodFromDb(p.SecretID)
+	// 	if p.ChatCount > 10000 {
+	// 		if god == 0 || god == p.QQ {
+	// 			b.setGodToDb(p.SecretID, &p.QQ)
+	// 			p.SecretLevel = 9
+	// 		}
+	// 	} else if p.ChatCount > 8000 {
+	// 		if god == 0 {
+	// 			p.SecretLevel = 8
+	// 		}
+	// 	} else if p.ChatCount > 5500 {
+	// 		p.SecretLevel = 7
+	// 	} else if p.ChatCount > 3000 {
+	// 		p.SecretLevel = 6
+	// 	} else if p.ChatCount > 1500 {
+	// 		p.SecretLevel = 5
+	// 	} else if p.ChatCount > 1000 {
+	// 		p.SecretLevel = 4
+	// 	} else if p.ChatCount > 800 {
+	// 		p.SecretLevel = 3
+	// 	} else if p.ChatCount > 400 {
+	// 		p.SecretLevel = 2
+	// 	} else if p.ChatCount > 200 {
+	// 		p.SecretLevel = 1
+	// 	} else if p.ChatCount > 50 {
+	// 		p.SecretLevel = 0
+	// 	} else {
+	// 		p.SecretLevel = 99
+	// 	}
 
-	if p.SecretLevel != levelOld {
-		ret = "恭喜！你的序列晋升了！" + b.allSkillLevelUp(p.QQ)
-	}
+	// 	if p.SecretLevel != levelOld {
+	// 		ret = "恭喜！你的序列晋升了！" + b.allSkillLevelUp(p.QQ)
+	// 	}
 
-	fmt.Println("level:", p.SecretLevel)
+	// 	fmt.Println("level:", p.SecretLevel)
 
-	if (uint64(time.Now().Unix()) - p.LevelDown) > 3600*24*7 {
-		if p.SecretLevel >= (uint64(time.Now().Unix())-p.LevelDown)/(3600*24*7) {
-			p.SecretLevel -= (uint64(time.Now().Unix()) - p.LevelDown) / (3600 * 24 * 7)
-		}
-		p.LevelDown = uint64(time.Now().Unix())
-	}
+	// 	if (uint64(time.Now().Unix()) - p.LevelDown) > 3600*24*7 {
+	// 		if p.SecretLevel >= (uint64(time.Now().Unix())-p.LevelDown)/(3600*24*7) {
+	// 			p.SecretLevel -= (uint64(time.Now().Unix()) - p.LevelDown) / (3600 * 24 * 7)
+	// 		}
+	// 		p.LevelDown = uint64(time.Now().Unix())
+	// 	}
 
-	return ret
+	// 	return ret
+	// }
 }
 
 func (b *Bot) promotion(fromQQ uint64) string {
 	p := b.getPersonFromDb(fromQQ)
 	if p.SecretID > 22 || p.ChatCount < 50 {
-		return "你只是个普通人，乱喝魔药会死的。"
+		return "\n你只是个普通人，乱喝魔药会死的。"
 	}
 
 	if p.SecretLevel == 9 {
-		return "前方已经没有道路，您已是序列之尊神。"
+		return "\n前方已经没有道路，您已是序列之尊神。"
 	}
 
 	info := "\n"
@@ -83,7 +84,14 @@ func (b *Bot) promotion(fromQQ uint64) string {
 	}
 
 	if p.ChatCount < uint64(100*(math.Pow(2, float64(p.SecretLevel)))) {
-		return "对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。"
+		return "\n对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。"
+	}
+
+	if p.SecretLevel >= 7 {
+		god := b.getGodFromDb(p.SecretID)
+		if god != 0 && god != fromQQ {
+			return "\n你等待了漫长的岁月，经历了无数的机缘，却依旧无论如何都无法凑齐一份序列一的特性。除非本序列的那位真神陨落，否则你将永远无法成为天使之王。该继续就这样一直等待下去吗？还是说你的心中已经有了更大胆的计划……"
+		}
 	}
 
 	info += fmt.Sprintf("你当前的途径为：%s - 序列%d%s\n", secretInfo[p.SecretID].SecretName, 9-p.SecretLevel, secretInfo[p.SecretID].SecretLevelName[p.SecretLevel])
@@ -112,6 +120,10 @@ func (b *Bot) promotion(fromQQ uint64) string {
 	if r < successRate {
 		p.SecretLevel++
 		b.setPersonToDb(fromQQ, p)
+		god := b.getGodFromDb(p.SecretID)
+		if p.SecretLevel == 7 && god != 0 && god != fromQQ {
+			return info + "恭喜！你成功晋升为天使。灵性缓缓收束时你忽然感觉到从遥远的星空投来了某种不可名状的冰冷注视，神灵让人战栗的威压宛若实质。你选择的途径已经存在真神，而祂已经注意到了你……" + b.allSkillLevelUp(fromQQ)
+		}
 		return info + "在撑过一阵可怕的幻象之后，你晋升成功了。" + b.allSkillLevelUp(fromQQ)
 	}
 
@@ -224,11 +236,6 @@ func (b *Bot) removeSkill(fromQQ, skill uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	for i := 0; i < len(tree.Skills); i++ {
 		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[skill].Name {
-			// tree.Skills[i] = tree.Skills[len(tree.Skills)-1] // Copy last element to index i.
-			// tree.Skills[len(tree.Skills)-1] = nil            // Erase last element (write zero value).
-			// tree.Skills = tree.Skills[:len(tree.Skills)-1]   // Truncate slice.
-			// tree.Skills = append(tree.Skills[:i], tree.Skills[i+1:]...)
-
 			if len(tree.Skills) > 1 {
 				tree.Skills[i] = tree.Skills[len(tree.Skills)-1]
 				tree.Skills = tree.Skills[:len(tree.Skills)-1]

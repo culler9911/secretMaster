@@ -150,6 +150,7 @@ type ChurchInfo struct {
 	Commit      string
 	Skills      []*Skill
 	CreatorQQ   uint64
+	CreatorNick string
 	Money       uint64
 	MaxMember   uint64
 	Level       uint64

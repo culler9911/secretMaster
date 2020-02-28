@@ -44,6 +44,8 @@ func TestPromotion(t *testing.T) {
 	b.Update(fromQQ, "ThinkCat")
 	fmt.Println(b.promotion(fromQQ))
 	fmt.Println(b.changeSecretList("更换1", fromQQ))
+	god := uint64(123)
+	b.setGodToDb(0, &god)
 	b.Update(fromQQ, "ThinkCat")
 	b.setExp(fromQQ, 101)
 	fmt.Println(b.promotion(fromQQ))
@@ -56,7 +58,16 @@ func TestPromotion(t *testing.T) {
 	fmt.Println(b.getMoney(fromQQ), b.getExp(fromQQ))
 	fmt.Println(b.promotion(fromQQ))
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 500; i++ {
+		b.setMoney(fromQQ, 200)
+		b.setExp(fromQQ, 101)
+
+		fmt.Println(b.getMoney(fromQQ), b.getExp(fromQQ))
+		fmt.Println(b.promotion(fromQQ))
+	}
+	god = uint64(0)
+	b.setGodToDb(0, &god)
+	for i := 0; i < 500; i++ {
 		b.setMoney(fromQQ, 200)
 		b.setExp(fromQQ, 101)
 

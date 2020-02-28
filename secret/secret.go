@@ -280,6 +280,14 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.createChurch(fromQQ, msg)
 	}
 
+	if strings.Contains(msg, "解散") {
+		return b.deleteChurch(fromQQ, msg)
+	}
+
+	if strings.Contains(msg, "寻访") {
+		return b.listChurch()
+	}
+
 	return ""
 }
 
