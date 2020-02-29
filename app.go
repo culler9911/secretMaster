@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
-	"github.com/molin0000/secretMaster/secret"
 	"github.com/molin0000/secretMaster/interact"
+	"github.com/molin0000/secretMaster/secret"
 )
 
 //go:generate cqcfg -c .
 // cqp: 名称: 序列战争
-// cqp: 版本: 1.1.0:1
+// cqp: 版本: 2.0.0:1
 // cqp: 作者: molin
 // cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
