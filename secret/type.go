@@ -167,3 +167,16 @@ type Version struct {
 	Version string
 	Date    string
 }
+
+type PrayState struct {
+	Date uint64
+}
+
+type DbUpdate struct {
+	HasUpdate bool
+}
+
+type Bank struct {
+	Amount uint64
+	Date   uint64
+}

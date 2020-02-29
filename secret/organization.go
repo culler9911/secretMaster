@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (b *Bot) createChurch(fromQQ uint64, msg string) string {
@@ -58,10 +59,11 @@ func (b *Bot) createChurch(fromQQ uint64, msg string) string {
 	}
 
 	b.setMoney(fromQQ, -1000)
-	fmt.Println(b.getMoney(fromQQ))
 
 	churchs.ChurchList = append(churchs.ChurchList, newChurch)
 	b.setGroupValue("Churchs", churchs)
+
+	b.setPersonValue("Church", fromQQ, newChurch)
 
 	info += fmt.Sprintf("创建成功！\n名称:%s\n介绍:%s\n尊神/教主:%s\n技能:%s\n入会费:%d\n最大人数:%d\n等级:%d级\n注册资本:%d金镑",
 		newChurch.Name, newChurch.Commit, newChurch.CreatorNick, strs[3], newChurch.Money, b.getMoney(fromQQ)/200, newChurch.Level, b.getMoney(fromQQ))
@@ -76,7 +78,6 @@ func (b *Bot) deleteChurch(fromQQ uint64, msg string) string {
 	}
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
-	fmt.Printf("deleteChurch - churchs: %+v", churchs)
 	for i, c := range churchs.ChurchList {
 		if c == nil || (c.Name == strs[1] && c.CreatorQQ == fromQQ) {
 			if len(churchs.ChurchList) > 1 {
@@ -93,7 +94,7 @@ func (b *Bot) deleteChurch(fromQQ uint64, msg string) string {
 }
 
 func (b *Bot) listChurch() string {
-	info := "\n"
+	info := ""
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
 
 	for i, c := range churchs.ChurchList {
@@ -142,4 +143,106 @@ func (b *Bot) listChurch() string {
 	}
 
 	return info
+}
+
+func (b *Bot) joinChurch(fromQQ uint64, msg string) string {
+	strs := strings.Split(msg, ";")
+	if len(strs) != 2 {
+		return "格式不正确" + fmt.Sprintf("%+v", strs)
+	}
+
+	cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
+	if cc.Name == strs[1] {
+		return "你不是已经加入了么？别开玩笑。"
+	}
+
+	if len(cc.Name) > 0 {
+		return "还不快走开！你个二五仔！你已经有组织了！"
+	}
+
+	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	for i, c := range churchs.ChurchList {
+		if c != nil && c.Name == strs[1] {
+			if c.Members >= c.MaxMember {
+				return "\n对不起，满员了。"
+			}
+
+			if b.getMoney(fromQQ) < c.Money {
+				return "\n你囊中羞涩，交不起入会费，被委婉的劝退了。"
+			}
+
+			b.setMoney(fromQQ, -1*int(c.Money))
+			churchs.ChurchList[i].Members++
+			b.setPersonValue("Church", fromQQ, c)
+			b.setGroupValue("Churchs", churchs)
+			return "街头巷尾的流言、古怪神秘的仪式、一支未知的信仰正在悄然兴起。你遵循道听途说的消息找到了这座默默无闻的教堂，衣冠朴素的教士微笑着对你张开双臂：欢迎，我的孩子！欢迎加入" + c.Name + "，在" + c.CreatorNick + "的见证下，我们将步入永恒。"
+		}
+	}
+
+	return "\n你没有找到这个教会的据点，你确定有这个教会？"
+}
+
+func (b *Bot) exitChurch(fromQQ uint64) string {
+	cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
+	if len(cc.Name) == 0 {
+		return "\n你并未加入教会/组织，无需退出。"
+	}
+
+	getDb().Delete(b.personKey("Church", fromQQ), nil)
+
+	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	if churchs.ChurchList == nil {
+		return "未找到教会组织。"
+	}
+
+	for i, v := range churchs.ChurchList {
+		if v != nil && v.Name == cc.Name {
+			if v.CreatorQQ == fromQQ {
+				return "教主不能退出，只能解散。"
+			}
+
+			churchs.ChurchList[i].Members--
+			b.setGroupValue("Churchs", churchs)
+			return "你退出了" + cc.Name
+		}
+	}
+
+	return "你的教会早已消亡。"
+}
+
+func (b *Bot) pray(fromQQ uint64) string {
+	today := uint64(time.Now().Unix() / (3600 * 24))
+	ps := b.getPersonValue("Pray", fromQQ, &PrayState{}).(*PrayState)
+	if ps.Date != 0 && (today-ps.Date) < 3 {
+		return "你已经处于被庇护状态，无需重复祈祷。"
+	}
+
+	cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
+	if fromQQ == cc.CreatorQQ {
+		return "你试着向自己祈祷，并无效果。"
+	}
+
+	if !b.useItem(fromQQ, "灵性材料") {
+		return "连灵性材料都没有，瞎祈祷个什么。"
+	}
+
+	ps.Date = today
+	b.setPersonValue("Pray", fromQQ, ps)
+
+	b.listChurch()
+
+	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	for i, v := range churchs.ChurchList {
+		if cc.Name == v.Name {
+			cc = churchs.ChurchList[i]
+			break
+		}
+	}
+	b.setPersonValue("Church", fromQQ, cc)
+
+	p := b.getPersonFromDb(cc.CreatorQQ)
+	p.ChatCount += 10
+	b.setPersonToDb(cc.CreatorQQ, p)
+
+	return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
 }

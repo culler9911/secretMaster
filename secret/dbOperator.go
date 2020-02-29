@@ -115,17 +115,13 @@ func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
 		fmt.Println("get from ini.")
 		return b.getMoneyFromIni(fromQQ)
 	}
-	fmt.Println("get from db.")
 
 	ret, err := getDb().Get(b.moneyKey(fromQQ), nil)
-	fmt.Println(ret, err)
-
 	if err != nil {
 		return &Money{Group: b.Group, QQ: fromQQ, Money: chatCnt}
 	}
 	var m Money
 	rlp.DecodeBytes(ret, &m)
-	fmt.Println(m)
 	return &m
 }
 
@@ -244,9 +240,7 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 		v.Magic = 200
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
-	fmt.Printf("getExternFromDb:%+v", v)
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
-	fmt.Printf("tree:%+v", tree)
 
 	for i := 0; i < len(tree.Skills); i++ {
 		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[0].Name {
@@ -320,9 +314,8 @@ func (b *Bot) setPersonValue(keyPrefix string, fromQQ uint64, p interface{}) {
 
 func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue interface{}) interface{} {
 	data, err := getDb().Get(b.personKey(keyPrefix, fromQQ), nil)
-	fmt.Printf("getPersonValue, %s, %d, %+v, %v", keyPrefix, fromQQ, data, err)
 	if err != nil {
-		fmt.Println("数据库中没有这个字段:", keyPrefix, b.personKey(keyPrefix, fromQQ))
+		fmt.Println("getPersonValue nil:", keyPrefix, b.Group, fromQQ)
 		return defaultValue
 	}
 

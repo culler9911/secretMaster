@@ -2,18 +2,27 @@ package secret
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
-func TestCreateChurch(t *testing.T) {
+func checkResult(input string, compare string, t *testing.T) {
+	fmt.Println(input)
+	if strings.Trim(input, "\n") != strings.Trim(compare, "\n") {
+		t.Errorf("%s\nexpected: %s", input, compare)
+	}
+}
+func TestChurchs(t *testing.T) {
 	fromQQ := uint64(67939461000)
 	b := NewSecretBot(3334, 333, "aaa", false, &debugInteract{})
-	fmt.Println(b.Run("[CQ:at,qq=3334] 自杀", fromQQ, "mm"))
-	fmt.Println(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+1, "mm"))
-	fmt.Println(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+2, "mm"))
-	fmt.Println(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+3, "mm"))
 
-	fmt.Println(b.Run("[CQ:at,qq=3334] 创建", fromQQ, "mm"))
+	checkResult(b.Run("[CQ:at,qq=3334] 自杀", fromQQ, "mm"), "人物删除成功", t)
+	checkResult(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+1, "mm"), "人物删除成功", t)
+	checkResult(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+2, "mm"), "人物删除成功", t)
+	checkResult(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+3, "mm"), "人物删除成功", t)
+	checkResult(b.Run("[CQ:at,qq=3334] 自杀", fromQQ+4, "mm"), "人物删除成功", t)
+
+	checkResult(b.Run("[CQ:at,qq=3334] 创建", fromQQ, "mm"), "指令格式不正确！别想欺骗机器人！[[CQ:at,qq=3334] 创建]", t)
 
 	fmt.Println(b.Run("[CQ:at,qq=3334] 创建;aaa;bbb;ccc;ddd", fromQQ, "mm"))
 	fmt.Println(b.Run("[CQ:at,qq=3334] 创建;aaa;bbb;ccc;200", fromQQ, "mm"))
@@ -54,6 +63,37 @@ func TestCreateChurch(t *testing.T) {
 
 	fmt.Println(b.Run("[CQ:at,qq=3334] 寻访", fromQQ, "mm"))
 	fmt.Println(b.Run("[CQ:at,qq=3334] 寻访", fromQQ, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 加入;aaa1", fromQQ, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 加入;aaa2", fromQQ, "mm"))
+	b.Update(fromQQ+4, "mouse")
+	fmt.Println(b.Run("[CQ:at,qq=3334] 加入;aaa3", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", fromQQ+4, "mm"))
+
+	b.setMoney(fromQQ+4, 1000)
+	fmt.Println(b.Run("[CQ:at,qq=3334] 加入;aaa3", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", fromQQ+4, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 寻访", fromQQ, "mm"))
+	fmt.Println("money", b.getMoney(fromQQ+4))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+1, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+2, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+4, "mm"))
+	b.buyMagicItem(fromQQ + 4)
+	b.buyMagicItem(fromQQ + 4)
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+4, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+1, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+3, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 寻访", fromQQ, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", fromQQ+4, "mm"))
 
 	fmt.Println(b.deleteChurch(fromQQ+1, "解散;aaa1"))
 	fmt.Println(b.deleteChurch(fromQQ+2, "解散;aaa2"))

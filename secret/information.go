@@ -41,6 +41,9 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.personKey("Bag", fromQQ), nil)
 	getDb().Delete(b.personKey("Potion", fromQQ), nil)
 	getDb().Delete(b.personKey("SkillTree", fromQQ), nil)
+	getDb().Delete(b.personKey("Church", fromQQ), nil)
+	getDb().Delete(b.personKey("Pray", fromQQ), nil)
+	getDb().Delete(b.personKey("Bank", fromQQ), nil)
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
 	for i, c := range churchs.ChurchList {
@@ -63,8 +66,6 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 	var secretName string
 	var secretLevelName string
 	var startTime string
-
-	fmt.Println(v)
 
 	if v.SecretID > 22 {
 		secretName = "普通人"
@@ -93,23 +94,24 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		}
 	}
 
-	fmt.Println("get money", fromQQ)
 	money := b.getMoney(fromQQ)
-	fmt.Println("money", money)
 
 	e := b.getExternFromDb(fromQQ)
-	bind := b.getMoneyBind()
-	fmt.Printf("%+v", bind)
+
+	cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
+	if len(cc.Name) == 0 {
+		cc.Name = "无"
+	}
 	info := ""
-	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n尊名：%s",
+	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n教会/组织：%s\n尊名：%s",
 		v.Name, secretName, secretLevelName, exp, money,
 		e.Luck,
 		e.Magic,
 		startTime, fight[myFightIndex], sReLive,
+		cc.Name,
 		b.getRNameFromDb(fromQQ),
 	)
 
-	fmt.Print(info)
 	return info
 }
 
@@ -118,9 +120,6 @@ func (b *Bot) getRank(fromQQ uint64) string {
 	persons := make([]Person, 0)
 	cnt := 0
 	for iter.Next() {
-		fmt.Printf("key:%+v", string(iter.Key()))
-		fmt.Printf("value:%+v", iter.Value())
-
 		if strings.Index(string(iter.Key()), "money") != -1 ||
 			strings.Index(string(iter.Key()), "adv") != -1 ||
 			strings.Index(string(iter.Key()), "water") != -1 {
@@ -130,12 +129,13 @@ func (b *Bot) getRank(fromQQ uint64) string {
 		verify := iter.Value()
 		var v Person
 		rlp.DecodeBytes(verify, &v)
-		fmt.Printf("%+v", v)
 		persons = append(persons, v)
 	}
 	iter.Release()
 	err := iter.Error()
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	retValue := ""
 
@@ -205,7 +205,6 @@ func (b *Bot) setMoney(fromQQ uint64, v int) {
 
 func (b *Bot) getMoney(fromQQ uint64) uint64 {
 	money := b.getMoneyFromDb(fromQQ, 0)
-	fmt.Printf("%+v", money)
 	return money.Money
 }
 

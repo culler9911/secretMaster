@@ -80,9 +80,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 
 		w := b.getWaterRuleFromDb(fromQQ)
 		m := b.getMoneyFromDb(fromQQ, 0)
-		fmt.Printf("money:%+v", m)
 		e := b.getExternFromDb(fromQQ)
-		fmt.Printf("extern:%+v", e)
 
 		if e.Magic > 0 {
 			e.Magic--
@@ -292,6 +290,22 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.getVersion()
 	}
 
+	if strings.Contains(msg, "加入") {
+		return b.joinChurch(fromQQ, msg)
+	}
+
+	if strings.Contains(msg, "退出") {
+		return b.exitChurch(fromQQ)
+	}
+
+	if strings.Contains(msg, "祈祷") {
+		return b.pray(fromQQ)
+	}
+
+	if strings.Contains(msg, "银行") {
+		return b.bank(fromQQ, msg)
+	}
+
 	return ""
 }
 
@@ -301,8 +315,6 @@ func (b *Bot) talkToMe(msg string) bool {
 	}
 
 	cp := fmt.Sprintf("CQ:at,qq=%d", b.QQ)
-
-	fmt.Println("talkToMe?", msg, cp)
 
 	if strings.Index(msg, cp) != -1 {
 		return true
