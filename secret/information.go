@@ -44,7 +44,7 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
 	for i, c := range churchs.ChurchList {
-		if c.CreatorQQ == fromQQ {
+		if c == nil || c.CreatorQQ == fromQQ {
 			if len(churchs.ChurchList) > 1 {
 				churchs.ChurchList[i] = churchs.ChurchList[len(churchs.ChurchList)-1]
 				churchs.ChurchList = churchs.ChurchList[:len(churchs.ChurchList)-1]

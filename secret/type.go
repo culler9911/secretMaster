@@ -155,8 +155,15 @@ type ChurchInfo struct {
 	MaxMember   uint64
 	Level       uint64
 	CreateMoney uint64
+	Members     uint64
 }
 
 type Churchs struct {
 	ChurchList []*ChurchInfo
+}
+
+type Version struct {
+	Name    string
+	Version string
+	Date    string
 }

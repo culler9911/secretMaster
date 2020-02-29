@@ -28,7 +28,7 @@ func (b *Bot) createChurch(fromQQ uint64, msg string) string {
 		return "\n你查了查贝克兰德的地价，发现钱似乎还不够。"
 	}
 
-	newChurch := &ChurchInfo{strs[1], strs[2], nil, fromQQ, b.CurrentNick, uint64(enterPrice), b.getMoney(fromQQ) / 200, 1, b.getMoney(fromQQ)}
+	newChurch := &ChurchInfo{strs[1], strs[2], nil, fromQQ, b.CurrentNick, uint64(enterPrice), b.getMoney(fromQQ) / 200, 1, b.getMoney(fromQQ), 1}
 
 	info := "\n"
 
@@ -76,8 +76,9 @@ func (b *Bot) deleteChurch(fromQQ uint64, msg string) string {
 	}
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	fmt.Printf("churchs: %+v", churchs)
 	for i, c := range churchs.ChurchList {
-		if c.Name == strs[1] && c.CreatorQQ == fromQQ {
+		if c == nil || (c.Name == strs[1] && c.CreatorQQ == fromQQ) {
 			if len(churchs.ChurchList) > 1 {
 				churchs.ChurchList[i] = churchs.ChurchList[len(churchs.ChurchList)-1]
 				churchs.ChurchList = churchs.ChurchList[:len(churchs.ChurchList)-1]
@@ -131,8 +132,8 @@ func (b *Bot) listChurch() string {
 			skillStr += fmt.Sprintf("%s lv%d; ", c.Skills[i].Name, p.SecretLevel-4)
 		}
 
-		info += fmt.Sprintf("\n名称:%s\n介绍:%s\n尊神/教主:%s\n技能:%s\n入会费:%d\n最大人数:%d\n等级:%d级\n注册资本:%d金镑\n",
-			c.Name, c.Commit, c.CreatorNick, skillStr, c.Money, b.getMoney(c.CreatorQQ)/200, c.Level, c.CreateMoney)
+		info += fmt.Sprintf("\n名称:%s\n介绍:%s\n尊神/教主:%s\n技能:%s\n入会费:%d\n人数:%d/%d\n等级:%d级\n注册资本:%d金镑\n",
+			c.Name, c.Commit, c.CreatorNick, skillStr, c.Money, c.Members, b.getMoney(c.CreatorQQ)/200, c.Level, c.CreateMoney)
 
 		if update {
 			churchs.ChurchList[i] = c

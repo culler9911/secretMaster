@@ -16,7 +16,7 @@ var db *leveldb.DB
 
 func getDb() *leveldb.DB {
 	if db == nil {
-		_db, err := leveldb.OpenFile("secret.db", nil)
+		_db, err := leveldb.OpenFile("data/app/me.cqp.molin.secretMaster/UserData.db", nil)
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
 			panic(err)

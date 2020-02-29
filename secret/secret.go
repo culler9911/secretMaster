@@ -288,6 +288,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.listChurch()
 	}
 
+	if strings.Contains(msg, "版本") {
+		return b.getVersion()
+	}
+
 	return ""
 }
 
@@ -305,4 +309,14 @@ func (b *Bot) talkToMe(msg string) bool {
 	}
 
 	return false
+}
+
+func (b *Bot) getVersion() string {
+	v := b.getGroupValue("Version", &Version{"", "", ""}).(*Version)
+	if v.Version == "" {
+		//Update
+
+	}
+
+	return fmt.Sprintf("\n%s %s %s", version.Name, version.Version, version.Date)
 }

@@ -235,7 +235,7 @@ func (b *Bot) setSkill(fromQQ, skill uint64, level uint64) {
 func (b *Bot) removeSkill(fromQQ, skill uint64) {
 	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
 	for i := 0; i < len(tree.Skills); i++ {
-		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[skill].Name {
+		if tree.Skills[i] == nil || (tree.Skills[i].Name == skillList[skill].Name) {
 			if len(tree.Skills) > 1 {
 				tree.Skills[i] = tree.Skills[len(tree.Skills)-1]
 				tree.Skills = tree.Skills[:len(tree.Skills)-1]
