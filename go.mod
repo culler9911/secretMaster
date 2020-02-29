@@ -5,6 +5,7 @@ go 1.13
 require github.com/Tnze/CoolQ-Golang-SDK/v2 v2.0.1
 
 require (
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/syndtr/goleveldb v1.0.0
 	golang.org/x/text v0.3.2
 	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f

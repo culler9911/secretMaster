@@ -76,7 +76,7 @@ func (b *Bot) deleteChurch(fromQQ uint64, msg string) string {
 	}
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
-	fmt.Printf("churchs: %+v", churchs)
+	fmt.Printf("deleteChurch - churchs: %+v", churchs)
 	for i, c := range churchs.ChurchList {
 		if c == nil || (c.Name == strs[1] && c.CreatorQQ == fromQQ) {
 			if len(churchs.ChurchList) > 1 {
