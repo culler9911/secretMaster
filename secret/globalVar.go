@@ -280,4 +280,4 @@ var skillList = []Skill{
 	{2, "灵性协调", 1, 5},
 }
 
-var version = &Version{"序列战争", "v2.0.0", "2020-02-29"}
+var version = &Version{"序列战争", "v2.0.0", "2020-03-02"}

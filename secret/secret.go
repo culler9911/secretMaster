@@ -53,6 +53,7 @@ func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
 	}
 
 	if dirExists("secret.db") {
+		fmt.Println("老版本数据库已找到，准备升级", fromQQ)
 		_db, err := leveldb.OpenFile("secret.db", nil)
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
@@ -68,6 +69,9 @@ func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
 		var money Money
 		rlp.DecodeBytes(m, &money)
 		b.setMoney(fromQQ, int(money.Money))
+		fmt.Println("继承经验:", p.ChatCount, "继承金钱:", money.Money)
+	} else {
+		fmt.Println("老版本数据库不存在")
 	}
 	up.HasUpdate = true
 	b.setPersonValue("Update", fromQQ, up)
@@ -197,6 +201,8 @@ func (b *Bot) searchMenu(msg string, fromQQ uint64, menu *Menu) string {
 }
 
 func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
+	msg = strings.ReplaceAll(msg, "；", ";")
+
 	if strings.Contains(msg, "序列战争关") {
 		return b.botSwitch(fromQQ, false)
 	}
