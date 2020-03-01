@@ -107,6 +107,8 @@ func TestChurchs(t *testing.T) {
 	fmt.Println(b.Run("[CQ:at,qq=3334] 寻访", fromQQ, "mm"))
 	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", fromQQ+4, "mm"))
 
+	fmt.Println(b.Run("[CQ:at,qq=3334] 排行", fromQQ+4, "mm"))
+
 	fmt.Println(b.deleteChurch(fromQQ+1, "解散;aaa1"))
 	fmt.Println(b.deleteChurch(fromQQ+2, "解散;aaa2"))
 	fmt.Println(b.deleteChurch(fromQQ+3, "解散;aaa3"))

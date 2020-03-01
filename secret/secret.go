@@ -5,6 +5,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/molin0000/secretMaster/rlp"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 var botMap map[uint64]*Bot
@@ -43,12 +46,40 @@ func (b *Bot) RunPrivate(msg string, fromQQ uint64, nick string) string {
 	return b.searchMenu(msg, fromQQ, &menus)
 }
 
+func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
+	up := b.getPersonValue("Update", fromQQ, &DbUpdate{}).(*DbUpdate)
+	if up.HasUpdate {
+		return
+	}
+
+	if dirExists("secret.db") {
+		_db, err := leveldb.OpenFile("secret.db", nil)
+		if err != nil {
+			fmt.Printf("open db error: %+v", err)
+		}
+		verify, _ := _db.Get(b.keys(fromQQ), nil)
+		var v Person
+		rlp.DecodeBytes(verify, &v)
+		p := b.getPersonFromDb(fromQQ)
+		p.ChatCount = v.ChatCount
+		b.setPersonToDb(fromQQ, p)
+
+		m, _ := _db.Get(b.moneyKey(fromQQ), nil)
+		var money Money
+		rlp.DecodeBytes(m, &money)
+		b.setMoney(fromQQ, int(money.Money))
+	}
+	up.HasUpdate = true
+	b.setPersonValue("Update", fromQQ, up)
+	fmt.Println("升级完成")
+}
+
 func (b *Bot) Update(fromQQ uint64, nick string) string {
 	if !b.getSwitch() {
 		return ""
 	}
 
-	key := b.keys(fromQQ)
+	key := b.personKey("Person", fromQQ)
 	value, err := getDb().Get(key, nil)
 	fmt.Println("value:", value)
 	fmt.Println("err:", err)
@@ -74,6 +105,8 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			b.setExternToDb(fromQQ, e)
 		}
 	} else {
+		b.UpdateFromOldVersion(fromQQ)
+
 		v := b.getPersonFromDb(fromQQ)
 
 		// ret = b.levelUpdate(v)

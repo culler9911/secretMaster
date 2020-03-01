@@ -44,6 +44,10 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.personKey("Church", fromQQ), nil)
 	getDb().Delete(b.personKey("Pray", fromQQ), nil)
 	getDb().Delete(b.personKey("Bank", fromQQ), nil)
+	getDb().Delete(b.personKey("Person", fromQQ), nil)
+	getDb().Delete(b.personKey("Money", fromQQ), nil)
+	getDb().Delete(b.personKey("Water", fromQQ), nil)
+	getDb().Delete(b.personKey("Adventure", fromQQ), nil)
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
 	for i, c := range churchs.ChurchList {
@@ -120,12 +124,6 @@ func (b *Bot) getRank(fromQQ uint64) string {
 	persons := make([]Person, 0)
 	cnt := 0
 	for iter.Next() {
-		if strings.Index(string(iter.Key()), "money") != -1 ||
-			strings.Index(string(iter.Key()), "adv") != -1 ||
-			strings.Index(string(iter.Key()), "water") != -1 {
-			continue
-		}
-
 		verify := iter.Value()
 		var v Person
 		rlp.DecodeBytes(verify, &v)
