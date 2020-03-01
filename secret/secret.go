@@ -349,6 +349,10 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.bank(fromQQ, msg)
 	}
 
+	if strings.Contains(msg, "工作") {
+		return b.work(fromQQ, msg)
+	}
+
 	return ""
 }
 

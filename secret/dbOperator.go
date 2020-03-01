@@ -218,7 +218,7 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 	var v ExternProperty
 	rlp.DecodeBytes(ret, &v)
 	if v.Days != uint64(time.Now().Unix()/(3600*24)) {
-		v.Magic = 200 + b.getAdditionMagic(fromQQ)
+		v.Magic = uint64(200 + b.getAdditionMagic(fromQQ))
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
 	v.Luck = b.getAdditionLucky(fromQQ)

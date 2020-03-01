@@ -180,3 +180,12 @@ type Bank struct {
 	Amount uint64
 	Date   uint64
 }
+
+type Work struct {
+	ID         uint64
+	Name       string
+	MagicMinus uint64
+	MoneyAdd   uint64
+	ExpAdd     uint64
+	Date       uint64
+}

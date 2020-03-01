@@ -249,7 +249,7 @@ func (b *Bot) pray(fromQQ uint64) string {
 	b.setPersonToDb(cc.CreatorQQ, p)
 
 	e := b.getExternFromDb(fromQQ)
-	e.Magic += b.getAdditionMagic(fromQQ)
+	e.Magic = uint64(int(e.Magic) + b.getAdditionMagic(fromQQ))
 	b.setExternToDb(fromQQ, e)
 
 	return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
@@ -285,8 +285,11 @@ func (b *Bot) getAdditionInfo(fromQQ uint64, skill string, baseCount uint64) uin
 	return addition
 }
 
-func (b *Bot) getAdditionMagic(fromQQ uint64) uint64 {
-	return b.getAdditionInfo(fromQQ, "灵性协调", 50)
+func (b *Bot) getAdditionMagic(fromQQ uint64) int {
+	m := b.getAdditionInfo(fromQQ, "灵性协调", 50)
+	w := b.getPersonValue("Work", fromQQ, &Work{}).(*Work)
+
+	return int(m) - int(w.MagicMinus)
 }
 
 func (b *Bot) getAdditionAdventure(fromQQ uint64) uint64 {
