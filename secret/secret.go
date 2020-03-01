@@ -91,7 +91,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			normalHumanStop = true
 		}
 
-		if w.DayCnt < 200 && e.Magic > 0 && !normalHumanStop {
+		if b.reachMaxCount(fromQQ, w, e) && !normalHumanStop {
 			v.ChatCount++
 			w.DayCnt++
 			m.Money++
@@ -109,6 +109,10 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 	}
 
 	return ret
+}
+
+func (b *Bot) reachMaxCount(fromQQ uint64, w *WaterRule, e *ExternProperty) bool {
+	return e.Magic > 0
 }
 
 func (b *Bot) printMenu(menu *Menu) string {

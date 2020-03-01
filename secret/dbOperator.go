@@ -237,17 +237,10 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 	var v ExternProperty
 	rlp.DecodeBytes(ret, &v)
 	if v.Days != uint64(time.Now().Unix()/(3600*24)) {
-		v.Magic = 200
+		v.Magic = 200 + b.getAdditionMagic(fromQQ)
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
-	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
-
-	for i := 0; i < len(tree.Skills); i++ {
-		if tree.Skills[i] != nil && tree.Skills[i].Name == skillList[0].Name {
-			v.Luck = tree.Skills[i].Level
-			break
-		}
-	}
+	v.Luck = b.getAdditionLucky(fromQQ)
 
 	return &v
 }

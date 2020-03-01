@@ -86,6 +86,18 @@ func TestChurchs(t *testing.T) {
 
 	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+4, "mm"))
 	fmt.Println(b.Run("[CQ:at,qq=3334] 祈祷", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", fromQQ+4, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 探险", fromQQ+4, "mm"))
 
 	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+4, "mm"))
 	fmt.Println(b.Run("[CQ:at,qq=3334] 退出", fromQQ+4, "mm"))

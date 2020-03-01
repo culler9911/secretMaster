@@ -129,8 +129,12 @@ func (b *Bot) listChurch() string {
 		}
 		p := b.getPersonFromDb(c.CreatorQQ)
 		skillStr := ""
-		for i := 0; i < len(c.Skills); i++ {
-			skillStr += fmt.Sprintf("%s lv%d; ", c.Skills[i].Name, p.SecretLevel-4)
+		for m := 0; m < len(c.Skills); m++ {
+			skillStr += fmt.Sprintf("%s lv%d; ", c.Skills[m].Name, p.SecretLevel-4)
+			if c.Skills[m].Level != p.SecretLevel-4 {
+				c.Skills[m].Level = p.SecretLevel - 4
+				update = true
+			}
 		}
 
 		info += fmt.Sprintf("\n名称:%s\n介绍:%s\n尊神/教主:%s\n技能:%s\n入会费:%d\n人数:%d/%d\n等级:%d级\n注册资本:%d金镑\n",
@@ -244,5 +248,51 @@ func (b *Bot) pray(fromQQ uint64) string {
 	p.ChatCount += 10
 	b.setPersonToDb(cc.CreatorQQ, p)
 
+	e := b.getExternFromDb(fromQQ)
+	e.Magic += b.getAdditionMagic(fromQQ)
+	b.setExternToDb(fromQQ, e)
+
 	return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
+}
+
+func (b *Bot) getAdditionInfo(fromQQ uint64, skill string, baseCount uint64) uint64 {
+	addition := uint64(0)
+	tree := b.getPersonValue("SkillTree", fromQQ, &SkillTree{}).(*SkillTree)
+	if len(tree.Skills) > 0 {
+		for _, v := range tree.Skills {
+			if v.Name == skill {
+				addition += baseCount * v.Level
+				break
+			}
+		}
+	}
+
+	today := uint64(time.Now().Unix() / (3600 * 24))
+	pray := b.getPersonValue("Pray", fromQQ, &PrayState{}).(*PrayState)
+
+	if today-pray.Date < 3 {
+		cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
+		if len(cc.Skills) > 0 {
+			for _, v := range cc.Skills {
+				if v.Name == skill {
+					addition += baseCount * v.Level
+					break
+				}
+			}
+		}
+	}
+
+	return addition
+}
+
+func (b *Bot) getAdditionMagic(fromQQ uint64) uint64 {
+	return b.getAdditionInfo(fromQQ, "灵性协调", 50)
+}
+
+func (b *Bot) getAdditionAdventure(fromQQ uint64) uint64 {
+	return b.getAdditionInfo(fromQQ, "精力充沛", 1)
+}
+
+func (b *Bot) getAdditionLucky(fromQQ uint64) uint64 {
+	return b.getAdditionInfo(fromQQ, "幸运光环", 1)
 }
