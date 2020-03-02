@@ -304,3 +304,7 @@ func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue inter
 	rlp.DecodeBytes(data, defaultValue)
 	return defaultValue
 }
+
+func (b *Bot) removePersonValue(keyPrefix string, fromQQ uint64) {
+	getDb().Delete(b.personKey(keyPrefix, fromQQ), nil)
+}

@@ -111,7 +111,7 @@ func (b *Bot) work(fromQQ uint64, msg string) string {
 			b.setMoney(fromQQ, int(m))
 			b.setExp(fromQQ, int(e))
 		}
-
+		b.removePersonValue("Work", fromQQ)
 		return fmt.Sprintf("\n你工作了%d天，内容为:%s，收获%d金镑，%d经验", time, w.Name, m, e)
 	}
 

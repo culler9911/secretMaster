@@ -58,6 +58,7 @@ func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
 		}
+		defer _db.Close()
 		verify, _ := _db.Get(b.keys(fromQQ), nil)
 		var v Person
 		rlp.DecodeBytes(verify, &v)
