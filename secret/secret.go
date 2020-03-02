@@ -57,6 +57,7 @@ func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
 		_db, err := leveldb.OpenFile("secret.db", nil)
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
+			return
 		}
 		defer _db.Close()
 		verify, _ := _db.Get(b.keys(fromQQ), nil)
@@ -354,6 +355,13 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		return b.work(fromQQ, msg)
 	}
 
+	if strings.Contains(msg, "钓鱼") {
+		return b.fishing(fromQQ)
+	}
+
+	if strings.Contains(msg, "彩票") {
+		return b.lottery(fromQQ)
+	}
 	return ""
 }
 

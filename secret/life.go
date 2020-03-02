@@ -3,6 +3,7 @@ package secret
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -125,4 +126,53 @@ func (b *Bot) work(fromQQ uint64, msg string) string {
 	}
 
 	return "未知工作内容。"
+}
+
+func (b *Bot) fishing(fromQQ uint64) string {
+	if b.getMagic(fromQQ) < 5 {
+		return "你已经灵性枯竭了，再去钓鱼，怕会被鱼吃了。"
+	}
+
+	b.setMagic(fromQQ, -5)
+
+	totalProp := 0
+	for _, v := range fishList {
+		totalProp += int(v.Property)
+	}
+
+	luckNum := rand.Intn(totalProp) + 1
+
+	for _, v := range fishList {
+		luckNum -= int(v.Property)
+		if luckNum <= 0 {
+			if v.Money == 1000 {
+				p := b.getPersonValue("Person", fromQQ, &Person{}).(*Person)
+				if p.SecretLevel < 7 || p.SecretLevel > 10 {
+					b.setExp(fromQQ, -100)
+					return "你钓鱼钓到了可怕的" + v.Name + ", 你历经九死一生，终于逃脱了，经验-100."
+				} else {
+					b.setMoney(fromQQ, 1000)
+					return "你钓鱼钓到了可怕的" + v.Name + ", 它历经九死一生，终究不是你的对手，你卖掉它，得到了" + fmt.Sprintf("%d", v.Money) + "金镑。"
+				}
+			}
+			b.setMoney(fromQQ, int(v.Money))
+			return "你钓鱼钓到了" + v.Name + ", 你卖掉它，得到了" + fmt.Sprintf("%d", v.Money) + "金镑。"
+		}
+	}
+
+	return "你一无所获。"
+}
+
+func (b *Bot) lottery(fromQQ uint64) string {
+	if b.getMoney(fromQQ) < 2 {
+		return "你身无分文，彩票也买不起了。"
+	}
+	b.setMoney(fromQQ, -2)
+
+	if rand.Intn(500) == 0 {
+		b.setMoney(fromQQ, 1000)
+		return "天啊！！你中了大奖！1000金镑！！"
+	}
+
+	return "很遗憾，你没有中奖。"
 }

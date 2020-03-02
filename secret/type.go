@@ -189,3 +189,10 @@ type Work struct {
 	ExpAdd     uint64
 	Date       uint64
 }
+
+type Fish struct {
+	ID       uint64
+	Name     string
+	Property uint64
+	Money    uint64
+}
