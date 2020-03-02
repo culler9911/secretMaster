@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
+	"github.com/molin0000/secretMaster/interact"
 	"github.com/molin0000/secretMaster/secret"
 )
 
 //go:generate cqcfg -c .
 // cqp: 名称: 序列战争
-// cqp: 版本: 1.0.8:1
+// cqp: 版本: 2.0.0:1
 // cqp: 作者: molin
 // cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
@@ -21,8 +22,6 @@ func init() {
 	cqp.AppID = "me.cqp.molin.secretmaster" // TODO: 修改为这个插件的ID
 	cqp.PrivateMsg = onPrivateMsg
 	cqp.GroupMsg = onGroupMsg
-
-	// secret.TickerInit()
 }
 
 func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) int32 {
@@ -48,12 +47,12 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 		info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 		selfQQ := cqp.GetLoginQQ()
 		selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
-		bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
+		bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, true, &interact.Interact{})
 		ret := ""
 
 		send := func() {
 			if len(ret) > 0 {
-				fmt.Printf("\nSend group msg:%d, %s\n", fromGroup, ret)
+				fmt.Printf("\nSend private msg:%d, %s\n", fromGroup, ret)
 				time.Sleep(1000)
 				id := cqp.SendPrivateMsg(fromQQ, ret)
 				fmt.Printf("\nSend finish id:%d\n", id)
@@ -93,7 +92,7 @@ func onGroupMsg(subType, msgID int32, fromGroup, fromQQ int64, fromAnonymous, ms
 	info := cqp.GetGroupMemberInfo(fromGroup, fromQQ, true)
 	selfQQ := cqp.GetLoginQQ()
 	selfInfo := cqp.GetGroupMemberInfo(fromGroup, selfQQ, false)
-	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name)
+	bot := secret.NewSecretBot(uint64(cqp.GetLoginQQ()), uint64(fromGroup), selfInfo.Name, false, &interact.Interact{})
 	ret := ""
 
 	send := func() {

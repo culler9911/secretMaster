@@ -16,7 +16,7 @@ var db *leveldb.DB
 
 func getDb() *leveldb.DB {
 	if db == nil {
-		_db, err := leveldb.OpenFile("secret.db", nil)
+		_db, err := leveldb.OpenFile("data/app/me.cqp.molin.secretMaster/UserData.db", nil)
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
 			panic(err)
@@ -26,18 +26,22 @@ func getDb() *leveldb.DB {
 	return db
 }
 
+// 已废弃
 func (b *Bot) keys(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
 }
 
+// 已废弃
 func (b *Bot) ruleKey(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_water")
 }
 
+// 已废弃
 func (b *Bot) moneyKey(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_money")
 }
 
+// 已废弃
 func (b *Bot) advKey(fromQQ uint64) []byte {
 	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10) + "_adventure")
 }
@@ -59,7 +63,7 @@ func (b *Bot) switchKey() []byte {
 }
 
 func (b *Bot) getKeyPrefix() []byte {
-	return []byte(strconv.FormatInt(int64(b.Group), 10) + "_")
+	return []byte("Person" + "_" + strconv.FormatInt(int64(b.Group), 10) + "_")
 }
 
 func (b *Bot) getSwitch() bool {
@@ -79,34 +83,24 @@ func (b *Bot) setSwitch(enable bool) {
 }
 
 func (b *Bot) getPersonFromDb(fromQQ uint64) *Person {
-	verify, _ := getDb().Get(b.keys(fromQQ), nil)
-	var v Person
-	rlp.DecodeBytes(verify, &v)
-	return &v
+	return b.getPersonValue("Person", fromQQ, &Person{}).(*Person)
 }
 
 func (b *Bot) setPersonToDb(fromQQ uint64, p *Person) {
-	buf, _ := rlp.EncodeToBytes(p)
-	getDb().Put(b.keys(fromQQ), buf, nil)
+	b.setPersonValue("Person", fromQQ, p)
 }
 
 func (b *Bot) getWaterRuleFromDb(fromQQ uint64) *WaterRule {
-	ret, err := getDb().Get(b.ruleKey(fromQQ), nil)
-	if err != nil {
-		return &WaterRule{Group: b.Group, QQ: fromQQ, DayCnt: 1, Days: uint64(time.Now().Unix() / (3600 * 24))}
-	}
-	var w WaterRule
-	rlp.DecodeBytes(ret, &w)
+	w := b.getPersonValue("Water", fromQQ, &WaterRule{Group: b.Group, QQ: fromQQ, DayCnt: 1, Days: uint64(time.Now().Unix() / (3600 * 24))}).(*WaterRule)
 	if w.Days != uint64(time.Now().Unix()/(3600*24)) {
 		w.DayCnt = 0
 		w.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
-	return &w
+	return w
 }
 
 func (b *Bot) setWaterRuleToDb(fromQQ uint64, w *WaterRule) {
-	buf, _ := rlp.EncodeToBytes(w)
-	getDb().Put(b.ruleKey(fromQQ), buf, nil)
+	b.setPersonValue("Water", fromQQ, w)
 }
 
 func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
@@ -115,15 +109,8 @@ func (b *Bot) getMoneyFromDb(fromQQ uint64, chatCnt uint64) *Money {
 		fmt.Println("get from ini.")
 		return b.getMoneyFromIni(fromQQ)
 	}
-	fmt.Println("get from db.")
 
-	ret, err := getDb().Get(b.moneyKey(fromQQ), nil)
-	if err != nil {
-		return &Money{Group: b.Group, QQ: fromQQ, Money: chatCnt}
-	}
-	var m Money
-	rlp.DecodeBytes(ret, &m)
-	return &m
+	return b.getPersonValue("Money", fromQQ, &Money{}).(*Money)
 }
 
 func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
@@ -133,8 +120,7 @@ func (b *Bot) setMoneyToDb(fromQQ uint64, m *Money) {
 		b.setMoneyToIni(fromQQ, m)
 		return
 	}
-	buf, _ := rlp.EncodeToBytes(m)
-	getDb().Put(b.moneyKey(fromQQ), buf, nil)
+	b.setPersonValue("Money", fromQQ, m)
 }
 
 func cString(str string) string {
@@ -178,21 +164,15 @@ func (b *Bot) setMoneyToIni(fromQQ uint64, m *Money) {
 }
 
 func (b *Bot) getAdvFromDb(fromQQ uint64) *Adventure {
-	ret, err := getDb().Get(b.advKey(fromQQ), nil)
-	if err != nil {
-		return &Adventure{Group: b.Group, QQ: fromQQ, Days: uint64(time.Now().Unix() / (3600 * 24)), DayCnt: 0}
-	}
-	var m Adventure
-	rlp.DecodeBytes(ret, &m)
+	m := b.getPersonValue("Adventure", fromQQ, &Adventure{Group: b.Group, QQ: fromQQ, Days: uint64(time.Now().Unix() / (3600 * 24)), DayCnt: 0}).(*Adventure)
 	if m.Days != uint64(time.Now().Unix()/(3600*24)) {
 		m.DayCnt = 0
 	}
-	return &m
+	return m
 }
 
 func (b *Bot) setAdvToDb(fromQQ uint64, m *Adventure) {
-	buf, _ := rlp.EncodeToBytes(m)
-	getDb().Put(b.advKey(fromQQ), buf, nil)
+	b.setPersonValue("Adventure", fromQQ, m)
 }
 
 func (b *Bot) getGodFromDb(secretID uint64) uint64 {
@@ -238,16 +218,11 @@ func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 	var v ExternProperty
 	rlp.DecodeBytes(ret, &v)
 	if v.Days != uint64(time.Now().Unix()/(3600*24)) {
-		v.Magic = 200
+		v.Magic = uint64(200 + b.getAdditionMagic(fromQQ))
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
 	}
+	v.Luck = b.getAdditionLucky(fromQQ)
 
-	p := b.getPersonFromDb(fromQQ)
-	if p.SecretID == 17 {
-		if v.Luck < 5 {
-			v.Luck += 5
-		}
-	}
 	return &v
 }
 
@@ -257,6 +232,14 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func dirExists(dirName string) bool {
+	info, err := os.Stat(dirName)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return info.IsDir()
 }
 
 func (b *Bot) moneyBindKey() []byte {
@@ -276,4 +259,52 @@ func (b *Bot) getMoneyBind() *MoneyBind {
 func (b *Bot) setMoneyBind(p *MoneyBind) {
 	buf, _ := rlp.EncodeToBytes(p)
 	getDb().Put(b.moneyBindKey(), buf, nil)
+}
+
+// Common DB operate---------
+
+func (b *Bot) groupKey(keyPrefix string) []byte {
+	return []byte(keyPrefix + "_" + strconv.FormatInt(int64(b.Group), 10))
+}
+
+func (b *Bot) setGroupValue(keyPrefix string, p interface{}) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(b.groupKey(keyPrefix), buf, nil)
+}
+
+func (b *Bot) getGroupValue(keyPrefix string, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(b.groupKey(keyPrefix), nil)
+	if err != nil {
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}
+
+func (b *Bot) personKey(keyPrefix string, fromQQ uint64) []byte {
+	return []byte(keyPrefix + "_" + strconv.FormatInt(int64(b.Group), 10) + "_" + strconv.FormatInt(int64(fromQQ), 10))
+}
+
+func (b *Bot) setPersonValue(keyPrefix string, fromQQ uint64, p interface{}) {
+	buf, err := rlp.EncodeToBytes(p)
+	if err != nil {
+		fmt.Println(err)
+	}
+	getDb().Put(b.personKey(keyPrefix, fromQQ), buf, nil)
+}
+
+func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(b.personKey(keyPrefix, fromQQ), nil)
+	if err != nil {
+		fmt.Println("getPersonValue nil:", keyPrefix, b.Group, fromQQ)
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}
+
+func (b *Bot) removePersonValue(keyPrefix string, fromQQ uint64) {
+	getDb().Delete(b.personKey(keyPrefix, fromQQ), nil)
 }

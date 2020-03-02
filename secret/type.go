@@ -24,10 +24,18 @@ type SecretInfo struct {
 }
 
 type Bot struct {
-	QQ    uint64
-	Group uint64
-	Name  string
-	Rank  []uint64
+	QQ      uint64
+	Group   uint64
+	Name    string
+	Rank    []uint64
+	Private bool
+
+	CurrentNick string
+
+	information  *Information
+	career       *Career
+	organization *Organization
+	store        *Store
 }
 
 type WaterRule struct {
@@ -71,6 +79,31 @@ type AdventureEvent struct {
 	Messages []string
 }
 
+type Menu struct {
+	// 菜单级别：0，1，2，3
+	ID      int
+	Title   string
+	Info    string
+	Commit  string
+	SubMenu []Menu
+}
+
+type Information struct {
+	b *Bot
+}
+
+type Career struct {
+	b *Bot
+}
+
+type Organization struct {
+	b *Bot
+}
+
+type Store struct {
+	b *Bot
+}
+
 type BotSwitch struct {
 	Group  uint64
 	Enable bool
@@ -81,4 +114,85 @@ type MoneyBind struct {
 	IniSection string
 	IniKey     string
 	HasUpdate  bool
+}
+
+type Config struct {
+	HaveMaster bool
+	MasterQQ   uint64
+}
+
+type Item struct {
+	Name  string
+	Count uint64
+}
+
+type Bag struct {
+	Items []*Item
+}
+
+type Potion struct {
+	DayCnt uint64
+	Days   uint64
+}
+
+type Skill struct {
+	ID       uint64
+	Name     string
+	Level    uint64
+	MaxLevel uint64
+}
+type SkillTree struct {
+	Skills []*Skill
+}
+
+type ChurchInfo struct {
+	Name        string
+	Commit      string
+	Skills      []*Skill
+	CreatorQQ   uint64
+	CreatorNick string
+	Money       uint64
+	MaxMember   uint64
+	Level       uint64
+	CreateMoney uint64
+	Members     uint64
+}
+
+type Churchs struct {
+	ChurchList []*ChurchInfo
+}
+
+type Version struct {
+	Name    string
+	Version string
+	Date    string
+}
+
+type PrayState struct {
+	Date uint64
+}
+
+type DbUpdate struct {
+	HasUpdate bool
+}
+
+type Bank struct {
+	Amount uint64
+	Date   uint64
+}
+
+type Work struct {
+	ID         uint64
+	Name       string
+	MagicMinus uint64
+	MoneyAdd   uint64
+	ExpAdd     uint64
+	Date       uint64
+}
+
+type Fish struct {
+	ID       uint64
+	Name     string
+	Property uint64
+	Money    uint64
 }
