@@ -46,18 +46,18 @@ func (b *Bot) RunPrivate(msg string, fromQQ uint64, nick string) string {
 	return b.searchMenu(msg, fromQQ, &menus)
 }
 
-func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
+func (b *Bot) UpdateFromOldVersion(fromQQ uint64) string {
 	up := b.getPersonValue("Update", fromQQ, &DbUpdate{}).(*DbUpdate)
 	if up.HasUpdate {
-		return
+		return ""
 	}
-
+	info := ""
 	if dirExists("secret.db") {
 		fmt.Println("老版本数据库已找到，准备升级", fromQQ)
 		_db, err := leveldb.OpenFile("secret.db", nil)
 		if err != nil {
 			fmt.Printf("open db error: %+v", err)
-			return
+			return ""
 		}
 		defer _db.Close()
 		verify, _ := _db.Get(b.keys(fromQQ), nil)
@@ -72,12 +72,14 @@ func (b *Bot) UpdateFromOldVersion(fromQQ uint64) {
 		rlp.DecodeBytes(m, &money)
 		b.setMoney(fromQQ, int(money.Money))
 		fmt.Println("继承经验:", p.ChatCount, "继承金钱:", money.Money)
+		info += fmt.Sprintf("\n继承经验:%d, 继承金钱:%d\n", p.ChatCount, money.Money)
 	} else {
 		fmt.Println("老版本数据库不存在")
 	}
 	up.HasUpdate = true
 	b.setPersonValue("Update", fromQQ, up)
 	fmt.Println("升级完成")
+	return info
 }
 
 func (b *Bot) Update(fromQQ uint64, nick string) string {
@@ -111,7 +113,7 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 			b.setExternToDb(fromQQ, e)
 		}
 	} else {
-		b.UpdateFromOldVersion(fromQQ)
+		ret += b.UpdateFromOldVersion(fromQQ)
 
 		v := b.getPersonFromDb(fromQQ)
 

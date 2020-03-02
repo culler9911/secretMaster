@@ -7,10 +7,17 @@ import (
 
 func TestRun(t *testing.T) {
 	b := NewSecretBot(3334, 333, "cat", false, &debugInteract{})
-	fmt.Println(b.Run("@cat 属性", 112, "mm"))
-	fmt.Println(b.Run("[CQ:at,qq=2960213278] 属性", 67939461, "mm"))
-	fmt.Println(b.getProperty(112))
 	fmt.Println(b.Update(112, "mm"))
+	fmt.Println(b.Run("[CQ:at,qq=3334] 自杀", 112, "mm"))
+	fmt.Println(b.Update(112, "mm"))
+
+	fmt.Println(b.Run("[CQ:at,qq=3334] 属性", 67939461, "mm"))
+	fmt.Println(b.getProperty(112))
+
+	for i := 0; i < 2000; i++ {
+		fmt.Println(b.Update(112, "mm"))
+		fmt.Println(b.Run("[CQ:at,qq=3334] 水水水水", 67939461, "mm"))
+	}
 }
 
 func TestCmds(t *testing.T) {
