@@ -230,6 +230,10 @@ func (b *Bot) setMagic(fromQQ uint64, v int) {
 
 func (b *Bot) getMagic(fromQQ uint64) uint64 {
 	e := b.getExternFromDb(fromQQ)
+	if int64(e.Magic) < 0 {
+		e.Magic = 200
+		b.setExternToDb(fromQQ, e)
+	}
 	return e.Magic
 }
 

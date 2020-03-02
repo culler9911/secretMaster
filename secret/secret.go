@@ -43,6 +43,7 @@ func (b *Bot) Run(msg string, fromQQ uint64, nick string) string {
 }
 
 func (b *Bot) RunPrivate(msg string, fromQQ uint64, nick string) string {
+	b.CurrentNick = nick
 	return b.searchMenu(msg, fromQQ, &menus)
 }
 
