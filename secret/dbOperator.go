@@ -309,3 +309,68 @@ func (b *Bot) getPersonValue(keyPrefix string, fromQQ uint64, defaultValue inter
 func (b *Bot) removePersonValue(keyPrefix string, fromQQ uint64) {
 	getDb().Delete(b.personKey(keyPrefix, fromQQ), nil)
 }
+
+func globalPersonKey(keyPrefix string, fromQQ uint64) []byte {
+	return []byte(keyPrefix + "_" + strconv.FormatInt(int64(fromQQ), 10))
+}
+
+func GetGlobalPersonValue(keyPrefix string, fromQQ uint64, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(globalPersonKey(keyPrefix, fromQQ), nil)
+	if err != nil {
+		fmt.Println("GetGlobalPersonValue nil:", keyPrefix, fromQQ)
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}
+
+func SetGlobalPersonValue(keyPrefix string, fromQQ uint64, p interface{}) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(globalPersonKey(keyPrefix, fromQQ), buf, nil)
+}
+
+func RemoveGlobalPersonValue(keyPrefix string, fromQQ uint64) {
+	getDb().Delete(globalPersonKey(keyPrefix, fromQQ), nil)
+}
+
+func globalKey(keyPrefix string) []byte {
+	return []byte(keyPrefix)
+}
+
+func GetGlobalValue(keyPrefix string, defaultValue interface{}) interface{} {
+	data, err := getDb().Get(globalKey(keyPrefix), nil)
+	if err != nil {
+		fmt.Println("GetGlobalPersonValue nil:", keyPrefix)
+		return defaultValue
+	}
+
+	rlp.DecodeBytes(data, defaultValue)
+	return defaultValue
+}
+
+func SetGlobalValue(keyPrefix string, p interface{}) {
+	buf, _ := rlp.EncodeToBytes(p)
+	getDb().Put(globalKey(keyPrefix), buf, nil)
+}
+
+func RemoveGlobalValue(keyPrefix string) {
+	getDb().Delete(globalKey(keyPrefix), nil)
+}
+
+func UpdateGroup(group uint64) {
+	groupList := GetGlobalValue("Groups", &Groups{}).(*Groups)
+	for _, v := range groupList.Groups {
+		if v == group {
+			return
+		}
+	}
+
+	groupList.Groups = append(groupList.Groups, group)
+	SetGlobalValue("Groups", groupList)
+}
+
+func GetGroups() []uint64 {
+	groupList := GetGlobalValue("Groups", &Groups{}).(*Groups)
+	return groupList.Groups
+}

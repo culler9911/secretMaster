@@ -96,6 +96,9 @@ func (b *Bot) deleteChurch(fromQQ uint64, msg string) string {
 func (b *Bot) listChurch() string {
 	info := ""
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	if len(churchs.ChurchList) == 0 {
+		return "你没有找到任何教会。"
+	}
 
 	for i, c := range churchs.ChurchList {
 		update := false

@@ -1,5 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/Tnze/CoolQ-Golang-SDK v1.2.0 h1:0vnuZCFRd3ufSnZd/6sveqmlamIMm3Bnr8M/7veIDLE=
+github.com/Tnze/CoolQ-Golang-SDK v1.2.0/go.mod h1:e0wTTiIAcKLmr4JHTUHOo0dLzctmhNE1m3HhNHHGQLA=
 github.com/Tnze/CoolQ-Golang-SDK/v2 v2.0.1 h1:wCBJZVqcXSTsWlkvnA+/jM1SkXoAPnU5Q8OQBXRrAAQ=
 github.com/Tnze/CoolQ-Golang-SDK/v2 v2.0.1/go.mod h1:o+TitO7jwCTftdnOD+uAJiUrom7NI4wTtyCJu7bFbSM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=

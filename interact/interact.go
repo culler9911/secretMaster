@@ -1,7 +1,7 @@
 package interact
 
 import (
-	"github.com/Tnze/CoolQ-Golang-SDK/v2/cqp"
+	"github.com/Tnze/CoolQ-Golang-SDK/cqp"
 )
 
 type Interact struct{}

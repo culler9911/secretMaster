@@ -284,7 +284,7 @@ func (b *Bot) allSkillLevelUp(fromQQ uint64) string {
 			}
 		}
 		b.setPersonValue("SkillTree", fromQQ, tree)
-		return "技能等级提示！"
+		return "技能等级提升！"
 	}
 
 	return ""

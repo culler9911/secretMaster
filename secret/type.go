@@ -196,3 +196,7 @@ type Fish struct {
 	Property uint64
 	Money    uint64
 }
+
+type Groups struct {
+	Groups []uint64
+}
