@@ -236,23 +236,30 @@ func (b *Bot) pray(fromQQ uint64) string {
 	b.listChurch()
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
+	find := false
 	for i, v := range churchs.ChurchList {
 		if cc.Name == v.Name {
 			cc = churchs.ChurchList[i]
+			find = true
 			break
 		}
 	}
-	b.setPersonValue("Church", fromQQ, cc)
 
-	p := b.getPersonFromDb(cc.CreatorQQ)
-	p.ChatCount += 10
-	b.setPersonToDb(cc.CreatorQQ, p)
+	if find {
+		b.setPersonValue("Church", fromQQ, cc)
 
-	e := b.getExternFromDb(fromQQ)
-	e.Magic = uint64(int(e.Magic) + b.getAdditionMagic(fromQQ))
-	b.setExternToDb(fromQQ, e)
+		p := b.getPersonFromDb(cc.CreatorQQ)
+		p.ChatCount += 10
+		b.setPersonToDb(cc.CreatorQQ, p)
 
-	return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
+		e := b.getExternFromDb(fromQQ)
+		e.Magic = uint64(int(e.Magic) + b.getAdditionMagic(fromQQ))
+		b.setExternToDb(fromQQ, e)
+
+		return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
+	}
+
+	return "你没有加入教会，请不要胡乱祈祷"
 }
 
 func (b *Bot) getAdditionInfo(fromQQ uint64, skill string, baseCount uint64) uint64 {

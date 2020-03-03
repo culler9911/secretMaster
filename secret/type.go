@@ -65,9 +65,11 @@ type RespectName struct {
 }
 
 type ExternProperty struct {
-	Luck  uint64
-	Magic uint64
-	Days  uint64
+	Luck     uint64
+	Magic    uint64
+	Days     uint64
+	Hours    uint64
+	DayTotal uint64
 }
 
 type AdventureEvent struct {

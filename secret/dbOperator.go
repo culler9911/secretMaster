@@ -213,15 +213,30 @@ func (b *Bot) setExternToDb(fromQQ uint64, r *ExternProperty) {
 func (b *Bot) getExternFromDb(fromQQ uint64) *ExternProperty {
 	ret, err := getDb().Get(b.externKey(fromQQ), nil)
 	if err != nil {
-		return &ExternProperty{Luck: 0, Magic: 200, Days: uint64(time.Now().Unix() / 3600 / 24)}
+		return &ExternProperty{Luck: 0, Magic: 200, Days: uint64(time.Now().Unix() / 3600 / 24), Hours: uint64(time.Now().Unix() / 3600), DayTotal: 200}
 	}
 	var v ExternProperty
 	rlp.DecodeBytes(ret, &v)
 	if v.Days != uint64(time.Now().Unix()/(3600*24)) {
-		v.Magic = uint64(200 + b.getAdditionMagic(fromQQ))
 		v.Days = uint64(time.Now().Unix() / (3600 * 24))
+		v.DayTotal = uint64(200 + b.getAdditionMagic(fromQQ))
 	}
+
+	if v.Hours != uint64(time.Now().Unix()/3600) {
+		v.Hours = uint64(time.Now().Unix() / 3600)
+		if v.Magic < uint64(200+b.getAdditionMagic(fromQQ)) {
+			if v.DayTotal-20 >= 0 {
+				v.DayTotal -= 20
+				v.Magic += 20
+			} else {
+				v.Magic += v.DayTotal
+				v.DayTotal = 0
+			}
+		}
+	}
+
 	v.Luck = b.getAdditionLucky(fromQQ)
+	b.setExternToDb(fromQQ, &v)
 
 	return &v
 }
