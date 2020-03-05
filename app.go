@@ -80,6 +80,11 @@ func onPrivateMsg(subType, msgID int32, fromQQ int64, msg string, font int32) in
 
 	fmt.Println("Private msg:", msg, fromQQ)
 
+	if strings.Contains(msg, "广播") {
+		broadcast(uint64(fromQQ), msg)
+		return 0
+	}
+
 	oldMode := false
 	if strings.Contains(msg, "@") {
 		strArray := strings.Split(msg, "@")
@@ -146,4 +151,30 @@ func GetGroupNickName(info *cqp.GroupMember) string {
 	}
 
 	return info.Name
+}
+
+func broadcast(fromQQ uint64, msg string) {
+	defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+		if err := recover(); err != nil {
+			fmt.Println(err) // 这里的err其实就是panic传入的内容
+		}
+	}()
+
+	fmt.Println("broadcast", msg)
+
+	if fromQQ != 67939461 {
+		return
+	}
+
+	strs := strings.Split(msg, ";")
+	if len(strs) != 2 {
+		return
+	}
+
+	groups := secret.GetGroups()
+	for _, v := range groups {
+		fmt.Println("Ready to send:", v, strs[1])
+		cqp.SendGroupMsg(int64(v), strs[1])
+		fmt.Println("Send finish:", v)
+	}
 }
