@@ -83,8 +83,8 @@ func (b *Bot) promotion(fromQQ uint64) string {
 		return info + "你成功了，你成为了非凡者。"
 	}
 
-	if p.ChatCount < uint64(100*(math.Pow(2, float64(p.SecretLevel)))) {
-		return "\n对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。"
+	if p.ChatCount < uint64(100*(math.Pow(2, float64(p.SecretLevel+1)))) {
+		return "\n对不起，你的魔药还有残留，没有完全消化(经验还没达到晋升标准)。" + fmt.Sprintf("（需要经验：%d)\n", uint64(100*(math.Pow(2, float64(p.SecretLevel+1)))))
 	}
 
 	if p.SecretLevel >= 7 {

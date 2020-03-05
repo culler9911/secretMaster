@@ -15,21 +15,36 @@ type PersonState struct {
 	State  uint64 // 0:Start, 1:GroupSelect, 2:Play
 }
 
+func getGroupInfo(group int64, noCach bool) (detail *cqp.GroupDetail) {
+	defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+		if err := recover(); err != nil {
+			detail = nil
+		}
+	}()
+	getInfo := cqp.GetGroupInfo(group, noCach)
+	return &getInfo
+}
+
 func getGroupList() string {
 	groups := secret.GetGroups()
+	fmt.Println(groups)
 	ret := "\n"
 	for i, v := range groups {
-		detail := cqp.GetGroupInfo(int64(v), true)
-		fmt.Printf("%+v", detail)
-		ret += fmt.Sprintf("%d) %s [%d] (%d/%d);\n", i, detail.Name, v, detail.MembersNum, detail.MaxMemberNum)
+		detail := getGroupInfo(int64(v), false)
+		if detail != nil {
+			fmt.Printf("%+v", detail)
+			ret += fmt.Sprintf("%d) %s [%d] (%d/%d);\n", i, detail.Name, v, detail.MembersNum, detail.MaxMemberNum)
+			fmt.Println(ret)
+		} else {
+			secret.RemoveGroup(uint64(i))
+		}
 	}
 	return ret
 }
 
 func switchState(fromQQ int64, msg string) {
-
 	state := secret.GetGlobalPersonValue("State", uint64(fromQQ), &PersonState{0, false, 0}).(*PersonState)
-	if !state.Switch && !strings.Contains(msg, "序列战争") {
+	if !state.Switch && !strings.Contains(msg, "序列战争") && msg != "关闭私聊" {
 		return
 	}
 
@@ -38,16 +53,16 @@ func switchState(fromQQ int64, msg string) {
 	if msg == "关闭私聊" {
 		state.Switch = false
 		state.State = 0
-		cqp.SendPrivateMsg(fromQQ, "序列战争私聊功能已关闭，下次开启请说【序列战争】。")
 		secret.SetGlobalPersonValue("State", uint64(fromQQ), state)
+		cqp.SendPrivateMsg(fromQQ, "序列战争私聊功能已关闭，下次开启请说【序列战争】。")
 		return
 	}
 
 	if msg == "@" {
 		state.State = 1
+		secret.SetGlobalPersonValue("State", uint64(fromQQ), state)
 		cqp.SendPrivateMsg(fromQQ,
 			`请在下面列表中选择你的默认QQ群（回复序号选择）：`+getGroupList())
-		secret.SetGlobalPersonValue("State", uint64(fromQQ), state)
 		return
 	}
 
@@ -61,8 +76,11 @@ func switchState(fromQQ int64, msg string) {
 游戏现包含6大功能：资料、途径、教会、探险、商店、生活。
 在游玩过程中，可随时回复 [帮助] 查看可用指令列表，回复 [@] 可切换默认群聊，回复 [关闭私聊] 可关闭私聊游戏功能，下次想开启时再输入 [序列战争] 即可。`)
 
+		groupInfo := getGroupList()
 		cqp.SendPrivateMsg(fromQQ,
-			`首先请在下面列表中选择你的默认QQ群（回复序号选择）：`+getGroupList())
+			"首先请在下面列表中选择你的默认QQ群（回复序号选择）：")
+		fmt.Println("groupInfo", groupInfo)
+		cqp.SendPrivateMsg(fromQQ, groupInfo)
 		state.State = 1
 		state.Switch = true
 		secret.SetGlobalPersonValue("State", uint64(fromQQ), state)

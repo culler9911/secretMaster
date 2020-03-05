@@ -374,3 +374,18 @@ func GetGroups() []uint64 {
 	groupList := GetGlobalValue("Groups", &Groups{}).(*Groups)
 	return groupList.Groups
 }
+
+func RemoveGroup(i uint64) {
+	groups := GetGroups()
+	if len(groups) > 1 {
+		groups[i] = groups[len(groups)-1]
+		groups = groups[:len(groups)-1]
+	} else {
+		groups = nil
+	}
+
+	groupList := GetGlobalValue("Groups", &Groups{}).(*Groups)
+	groupList.Groups = groups
+
+	SetGlobalValue("Groups", groupList)
+}
