@@ -48,6 +48,7 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 	getDb().Delete(b.personKey("Money", fromQQ), nil)
 	getDb().Delete(b.personKey("Water", fromQQ), nil)
 	getDb().Delete(b.personKey("Adventure", fromQQ), nil)
+	getDb().Delete(b.personKey("Work", fromQQ), nil)
 
 	churchs := b.getGroupValue("Churchs", &Churchs{}).(*Churchs)
 	for i, c := range churchs.ChurchList {
@@ -83,7 +84,9 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		secretLevelName = fmt.Sprintf("序列%d：%s", 9-v.SecretLevel, secretInfo[v.SecretID].SecretLevelName[v.SecretLevel])
 		// secretLevelName = fmt.Sprintf("序列%d", 9-v.SecretLevel)
 	}
-
+	if v.JoinTime == 0 {
+		v.JoinTime = uint64(time.Now().Unix())
+	}
 	startTime = fmt.Sprintf("%d小时", (time.Now().Unix()-time.Unix(int64(v.JoinTime), 0).Unix())/3600)
 	// startTime = time.Unix(int64(v.JoinTime), 0).Format("2006-01-02 15:04:05")
 	exp := b.getExp(fromQQ)
