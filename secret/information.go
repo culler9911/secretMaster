@@ -60,6 +60,23 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 				churchs.ChurchList = nil
 			}
 			b.setGroupValue("Churchs", churchs)
+			iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+			for iter.Next() {
+				verify := iter.Value()
+				var v Person
+				rlp.DecodeBytes(verify, &v)
+				qq := v.QQ
+				cc := b.getPersonValue("Church", qq, &ChurchInfo{}).(*ChurchInfo)
+				if cc.Name == c.Name {
+					b.removePersonValue("Church", qq)
+				}
+			}
+			iter.Release()
+			err := iter.Error()
+			if err != nil {
+				fmt.Println(err)
+			}
+			break
 		}
 	}
 
