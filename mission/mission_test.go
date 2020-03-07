@@ -10,7 +10,6 @@ import (
 	"github.com/molin0000/secretMaster/secret"
 )
 
-
 func TestJsonRlp(t *testing.T) {
 	a := -100
 	b := uint64(a)
@@ -176,8 +175,23 @@ func TestJsonRlp(t *testing.T) {
 
 func TestRandomMission(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	for i:=0; i<10; i++ {
+	for i := 0; i < 100; i++ {
 		ms := NewRandomMission("/Users/molin/Downloads/mission")
 		fmt.Printf("%+v\n\n", ms)
+	}
+}
+
+func TestRunMission(t *testing.T) {
+	for m := 0; m < 10; m++ {
+		ms := NewRandomMission("/Users/molin/Downloads/mission")
+		fmt.Println(ms.ShowEvent(0))
+		for i := 0; i < 100; i++ {
+			msg, ret := ms.SelectOption(int(ms.Event), rand.Intn(len(ms.Ms.Events[ms.Event].Options)+1))
+			fmt.Println(msg)
+			if ret {
+				break
+			}
+		}
+		fmt.Println(ms.Finish())
 	}
 }
