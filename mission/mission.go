@@ -181,6 +181,7 @@ func (mg *MissionGame) SelectOption(event int, selection int) (msg string, finis
 					return msg, true
 				}
 				mg.Event = uint64(n)
+				fmt.Println("ra成功", mg.Event)
 				msg += mg.ShowEvent(int(mg.Event))
 				return msg, false
 			}

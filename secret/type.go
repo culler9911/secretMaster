@@ -1,5 +1,7 @@
 package secret
 
+import "github.com/molin0000/secretMaster/mission"
+
 type Person struct {
 	Group       uint64
 	QQ          uint64
@@ -199,4 +201,9 @@ type Fish struct {
 
 type Groups struct {
 	Groups []uint64
+}
+
+type MissionState struct {
+	IsPlaying bool
+	Ms        *mission.MissionGame
 }
