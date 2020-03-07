@@ -141,7 +141,7 @@ func (b *Bot) listChurch() string {
 		}
 
 		info += fmt.Sprintf("\n名称:%s\n介绍:%s\n尊神/教主:%s\n技能:%s\n入会费:%d\n人数:%d/%d\n等级:%d级\n注册资本:%d金镑\n",
-			c.Name, c.Commit, c.CreatorNick, skillStr, c.Money, c.Members, b.getMoney(c.CreatorQQ)/200, c.Level, c.CreateMoney)
+			c.Name, c.Commit, c.CreatorNick, skillStr, c.Money, int64(c.Members), b.getMoney(c.CreatorQQ)/200, c.Level, c.CreateMoney)
 
 		if update {
 			churchs.ChurchList[i] = c
@@ -208,7 +208,9 @@ func (b *Bot) exitChurch(fromQQ uint64) string {
 				return "教主不能退出，只能解散。"
 			}
 
-			churchs.ChurchList[i].Members--
+			if int64(churchs.ChurchList[i].Members) > 0 {
+				churchs.ChurchList[i].Members--
+			}
 			b.setGroupValue("Churchs", churchs)
 			return "你退出了" + cc.Name
 		}
