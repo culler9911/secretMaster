@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Tnze/CoolQ-Golang-SDK/cqp"
 	"github.com/molin0000/secretMaster/interact"
@@ -12,7 +14,7 @@ import (
 
 //go:generate cqcfg -c .
 // cqp: 名称: 序列战争
-// cqp: 版本: 2.2.5:1
+// cqp: 版本: 2.2.6:1
 // cqp: 作者: molin
 // cqp: 简介: 专为诡秘之主粉丝序列群开发的小游戏
 func main() { /*此处应当留空*/ }
@@ -21,6 +23,7 @@ func init() {
 	cqp.AppID = "me.cqp.molin.secretmaster" // TODO: 修改为这个插件的ID
 	cqp.PrivateMsg = onPrivateMsg
 	cqp.GroupMsg = onGroupMsg
+	rand.Seed(time.Now().Unix())
 }
 
 func procOldPrivateMsg(fromQQ int64, msg string) int {

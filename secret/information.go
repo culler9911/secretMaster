@@ -60,14 +60,36 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 				churchs.ChurchList = nil
 			}
 			b.setGroupValue("Churchs", churchs)
+			iter := getDb().NewIterator(util.BytesPrefix(b.getKeyPrefix()), nil)
+			for iter.Next() {
+				verify := iter.Value()
+				var v Person
+				rlp.DecodeBytes(verify, &v)
+				qq := v.QQ
+				cc := b.getPersonValue("Church", qq, &ChurchInfo{}).(*ChurchInfo)
+				if cc.Name == c.Name {
+					b.removePersonValue("Church", qq)
+				}
+			}
+			iter.Release()
+			err := iter.Error()
+			if err != nil {
+				fmt.Println(err)
+			}
+			break
 		}
 	}
+
+	// --remove person in
 
 	return "人物删除成功"
 }
 
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
+	if v.QQ == 0 {
+		return "人物不存在。（在群聊中说话后，自动新建人物）"
+	}
 	var secretName string
 	var secretLevelName string
 	var startTime string
