@@ -338,4 +338,4 @@ var fishList = []Fish{
 	{13, "奥布尼斯海怪", 1, 1000},
 }
 
-var version = &Version{"序列战争", "v2.2.6", "2020-03-07"}
+var version = &Version{"序列战争", "v2.2.7", "2020-03-07"}
