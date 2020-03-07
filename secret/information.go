@@ -87,9 +87,7 @@ func (b *Bot) deletePerson(fromQQ uint64) string {
 
 func (b *Bot) getProperty(fromQQ uint64) string {
 	v := b.getPersonFromDb(fromQQ)
-	if v.QQ == 0 {
-		return "人物不存在。（在群聊中说话后，自动新建人物）"
-	}
+
 	var secretName string
 	var secretLevelName string
 	var startTime string
