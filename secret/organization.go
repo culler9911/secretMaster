@@ -227,9 +227,9 @@ func (b *Bot) pray(fromQQ uint64) string {
 	}
 
 	cc := b.getPersonValue("Church", fromQQ, &ChurchInfo{}).(*ChurchInfo)
-	if fromQQ == cc.CreatorQQ {
-		return "你试着向自己祈祷，并无效果。"
-	}
+	// if fromQQ == cc.CreatorQQ {
+	// 	return "你试着向自己祈祷，并无效果。"
+	// }
 
 	if !b.useItem(fromQQ, "灵性材料") {
 		return "连灵性材料都没有，瞎祈祷个什么。"
