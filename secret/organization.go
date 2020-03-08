@@ -134,7 +134,7 @@ func (b *Bot) listChurch() string {
 		skillStr := ""
 		for m := 0; m < len(c.Skills); m++ {
 			skillStr += fmt.Sprintf("%s lv%d; ", c.Skills[m].Name, p.SecretLevel-4)
-			if c.Skills[m].Level != p.SecretLevel-4 {
+			if c.Skills[m].Level < p.SecretLevel-4 {
 				c.Skills[m].Level = p.SecretLevel - 4
 				update = true
 			}
