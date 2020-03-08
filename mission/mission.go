@@ -221,7 +221,7 @@ func (mg *MissionGame) SelectOption(event int, selection int) (msg string, finis
 				return msg, true
 			}
 			msg += fmt.Sprintf("灵性：%d\n", n)
-			mg.Exp = uint64(int64(mg.Exp) + int64(n))
+			mg.Magic = uint64(int64(mg.Magic) + int64(n))
 		case "跳转":
 			n, err := strconv.Atoi(string(v.Data))
 			if err != nil {
