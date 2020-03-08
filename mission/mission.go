@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 )
 
 type Result struct {
@@ -50,6 +51,9 @@ func loadMissions(jsonPath string) {
 	files, _ := ioutil.ReadDir(jsonPath)
 	for _, f := range files {
 		fmt.Println(f.Name())
+		if !strings.Contains(f.Name(), ".json") {
+			continue
+		}
 		str := readJSONFile(path.Join(jsonPath, f.Name()))
 		var ms Mission
 		err := json.Unmarshal([]byte(str), &ms)
