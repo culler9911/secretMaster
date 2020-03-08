@@ -257,9 +257,10 @@ func (b *Bot) pray(fromQQ uint64) string {
 		p.ChatCount += 10
 		b.setPersonToDb(cc.CreatorQQ, p)
 
-		e := b.getExternFromDb(fromQQ)
-		e.Magic = uint64(int(e.Magic) + b.getAdditionMagic(fromQQ))
-		b.setExternToDb(fromQQ, e)
+		// e := b.getExternFromDb(fromQQ)
+		b.setMagic(fromQQ, b.getAdditionMagic(fromQQ))
+		// e.Magic = uint64(int(e.Magic) + b.getAdditionMagic(fromQQ))
+		// b.setExternToDb(fromQQ, e)
 
 		return "你摆出精心准备的灵性材料，双手合十，认真祈祷……一阵清风拂过，你感觉自己似乎变强了。"
 	}
