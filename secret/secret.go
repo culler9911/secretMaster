@@ -379,6 +379,9 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 	}
 
 	if strings.Contains(msg, "副本") {
+		if strings.Contains(msg, "列表") {
+			return b.showMissions()
+		}
 		return b.startMission(fromQQ, msg)
 	}
 	return ""

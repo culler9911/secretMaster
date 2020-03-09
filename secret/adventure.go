@@ -24,15 +24,17 @@ func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	a.DayCnt++
 	a.Days = uint64(time.Now().Unix() / (3600 * 24))
 	b.setAdvToDb(fromQQ, a)
-	externProperty := b.getExternFromDb(fromQQ)
 
 	rand.Seed(time.Now().UnixNano())
 
-	i := int(externProperty.Luck*5) + rand.Intn(100-int(externProperty.Luck*5))
+	luck := b.getLuck(fromQQ)
+
+	i := int(luck*5) + rand.Intn(100-int(luck*5))
 	info := ""
 	m := 0
 	e := 0
 	fmt.Println("i:", i)
+
 	for p := 0; p < len(adventureEvents); p++ {
 		i = i - adventureEvents[p].Probability
 		fmt.Println("i:", i)

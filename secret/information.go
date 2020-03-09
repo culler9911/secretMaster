@@ -239,7 +239,7 @@ func (b *Bot) getMoney(fromQQ uint64) uint64 {
 
 func (b *Bot) setMagic(fromQQ uint64, v int) {
 	e := b.getExternFromDb(fromQQ)
-	if e.Magic >= 0 {
+	if v >= 0 {
 		e.Magic += uint64(v)
 	} else {
 		if e.Magic > uint64(-1*v) {
@@ -249,6 +249,32 @@ func (b *Bot) setMagic(fromQQ uint64, v int) {
 		}
 	}
 	b.setExternToDb(fromQQ, e)
+}
+
+func (b *Bot) setLuck(fromQQ uint64, v int) {
+	e := b.getExternFromDb(fromQQ)
+	if v >= 0 {
+		e.Luck += uint64(v)
+		if e.Luck > 20 {
+			e.Luck = 20
+		}
+	} else {
+		if e.Luck > uint64(-1*v) {
+			e.Luck -= uint64(-1 * v)
+		} else {
+			e.Luck = 0
+		}
+	}
+	b.setExternToDb(fromQQ, e)
+}
+
+func (b *Bot) getLuck(fromQQ uint64) uint64 {
+	e := b.getExternFromDb(fromQQ)
+	if int64(e.Luck) < 0 || e.Luck > 20 {
+		e.Luck = 0
+		b.setExternToDb(fromQQ, e)
+	}
+	return e.Luck
 }
 
 func (b *Bot) getMagic(fromQQ uint64) uint64 {

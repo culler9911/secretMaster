@@ -77,10 +77,19 @@ func (b *Bot) buyMace(fromQQ uint64) string {
 	bag := b.getPersonValue("Bag", fromQQ, &Bag{})
 	find := false
 	for i := 0; i < len(bag.(*Bag).Items); i++ {
-		if bag.(*Bag).Items[i].Name == "至高权杖" {
+		if bag.(*Bag).Items[i] != nil && bag.(*Bag).Items[i].Name == "至高权杖" {
 			find = true
 			bag.(*Bag).Items[i].Count++
 			break
+		}
+
+		if bag.(*Bag).Items[i] == nil {
+			if len(bag.(*Bag).Items) > 1 {
+				bag.(*Bag).Items[i] = bag.(*Bag).Items[len(bag.(*Bag).Items)-1]
+				bag.(*Bag).Items = bag.(*Bag).Items[:len(bag.(*Bag).Items)-1]
+			} else {
+				bag.(*Bag).Items = nil
+			}
 		}
 	}
 

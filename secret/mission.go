@@ -52,7 +52,11 @@ func (b *Bot) startMission(fromQQ uint64, msg string) string {
 
 	b.setMagic(fromQQ, -50)
 
-	mg := mission.NewRandomMission("data/app/me.cqp.molin.secretMaster/mission")
+	mg := mission.NewRandomMission(missionPath)
 	b.setPersonValue("Mission", fromQQ, &MissionState{true, mg})
 	return mg.ShowEvent(0)
+}
+
+func (b *Bot) showMissions() string {
+	return mission.ListMission(missionPath)
 }

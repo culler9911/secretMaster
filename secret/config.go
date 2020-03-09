@@ -104,17 +104,14 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 		b.setExp(n2, n1)
 		return fmt.Sprintf("%d 经验：%d", n2, n1)
 	case "magic":
-		m := b.getExternFromDb(uint64(n2))
-		if n1 > 0 {
-			m.Magic += uint64(n1)
-		} else {
-			m.Magic -= uint64(-1 * n1)
-		}
-		b.setExternToDb(uint64(n2), m)
+		b.setMagic(n2, n1)
 		return fmt.Sprintf("%d 灵性：%d", n2, n1)
 	case "god":
 		b.setGodToDb(uint64(n1-1), &n2)
 		return fmt.Sprintf("设置途径%d 神灵：%d", n1, n2)
+	case "luck":
+		b.setLuck(n2, n1)
+		return fmt.Sprintf("%d 幸运：%d", n2, n1)
 	default:
 		return "参数解析错误"
 	}
