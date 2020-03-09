@@ -94,8 +94,8 @@ func ListMission(jsonPath string) string {
 	}
 
 	info := "\n"
-	for _, v := range missionList {
-		info += fmt.Sprintf("副本：%s, 作者：%s, 时间：%s", v.Title, v.Author, v.Date)
+	for i, v := range missionList {
+		info += fmt.Sprintf("%d) 副本：%s, 作者：%s, 时间：%s\n", i, v.Title, v.Author, v.Date)
 	}
 	return info
 }
