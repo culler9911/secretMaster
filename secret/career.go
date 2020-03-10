@@ -203,6 +203,10 @@ func contains(s []uint64, e uint64) bool {
 }
 
 func canConvert(v1, v2 uint64) bool {
+	if v1 == v2 {
+		return false
+	}
+	
 	for _, a := range secretGroup {
 		if contains(a, v1) && contains(a, v2) {
 			return true
