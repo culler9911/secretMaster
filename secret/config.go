@@ -125,6 +125,19 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 		b.setMedal(n2, n1)
 
 		return fmt.Sprintf("%d 勋章🎖%d", n2, n1)
+	case "level":
+		p := b.getPersonFromDb(n2)
+		p.SecretLevel = uint64(n1)
+		b.setPersonToDb(n2, p)
+		return fmt.Sprintf("%d level to: %d", n2, n1)
+	case "way":
+		p := b.getPersonFromDb(n2)
+		if n1 > 0 {
+			p.SecretID = uint64(n1 - 1)
+			b.setPersonToDb(n2, p)
+			return fmt.Sprintf("%d way to: %d", n2, n1)
+		}
+		return "数值异常"
 	default:
 		return "参数解析错误"
 	}

@@ -341,4 +341,4 @@ var fishList = []Fish{
 
 var missionPath = "data/app/me.cqp.molin.secretMaster/mission"
 
-var version = &Version{"序列战争", "v2.4.0", "2020-03-10"}
+var version = &Version{"序列战争", "v2.4.1", "2020-03-10"}

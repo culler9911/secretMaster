@@ -129,6 +129,9 @@ func (b *Bot) Update(fromQQ uint64, nick string) string {
 		ret += b.UpdateFromOldVersion(fromQQ)
 
 		v := b.getPersonFromDb(fromQQ)
+		if v.Name != nick && len(nick) > 0 {
+			v.Name = nick
+		}
 
 		// ret = b.levelUpdate(v)
 
