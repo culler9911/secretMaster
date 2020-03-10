@@ -132,6 +132,10 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		workStr = w.Name
 	}
 
+	if len(v.Name) == 0 {
+		v.Name = b.CurrentNick
+	}
+
 	info := ""
 	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n教会/组织：%s\n工作：%s\n尊名：%s",
 		v.Name, secretName, secretLevelName, int64(b.getExp(fromQQ)), int64(b.getMoney(fromQQ)),

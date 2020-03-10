@@ -179,6 +179,7 @@ func (b *Bot) joinChurch(fromQQ uint64, msg string) string {
 			}
 
 			b.setMoney(fromQQ, -1*int(c.Money))
+			b.setMoney(c.CreatorQQ, int(c.Money))
 			churchs.ChurchList[i].Members++
 			b.setPersonValue("Church", fromQQ, c)
 			b.setGroupValue("Churchs", churchs)
