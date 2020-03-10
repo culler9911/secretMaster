@@ -136,9 +136,20 @@ func (b *Bot) getProperty(fromQQ uint64) string {
 		v.Name = b.CurrentNick
 	}
 
+	medalStr := ""
+	medalCnt := b.getMedal(fromQQ)
+	for md := uint64(0); md < medalCnt; md++ {
+		medalStr += "🎖"
+	}
+	if len(medalStr) == 0 {
+		medalStr = "无"
+	}
+
 	info := ""
-	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n教会/组织：%s\n工作：%s\n尊名：%s",
-		v.Name, secretName, secretLevelName, int64(b.getExp(fromQQ)), int64(b.getMoney(fromQQ)),
+	info = fmt.Sprintf("\n昵称：%s\n途径：%s\n序列：%s\n勋章：%s\n经验：%d\n金镑：%d\n幸运：%d\n灵性：%d\n修炼时间：%s\n战力评价：%s%s\n教会/组织：%s\n工作：%s\n尊名：%s",
+		v.Name, secretName, secretLevelName,
+		medalStr,
+		int64(b.getExp(fromQQ)), int64(b.getMoney(fromQQ)),
 		int64(b.getLuck(fromQQ)),
 		int64(b.getMagic(fromQQ)),
 		startTime, fight[myFightIndex], sReLive,
@@ -314,4 +325,23 @@ func (b *Bot) getSkill(fromQQ uint64) string {
 		info += fmt.Sprintf("%s lv%d; ", tree.Skills[i].Name, tree.Skills[i].Level)
 	}
 	return info
+}
+
+func (b *Bot) setMedal(fromQQ uint64, v int) {
+	m := GetGlobalPersonValue("Medal", fromQQ, &Medal{}).(*Medal)
+	if v >= 0 {
+		m.MedalCnt++
+	} else {
+		if m.MedalCnt > uint64(-1*v) {
+			m.MedalCnt -= uint64(-1 * v)
+		} else {
+			m.MedalCnt = 0
+		}
+	}
+	SetGlobalPersonValue("Medal", fromQQ, m)
+}
+
+func (b *Bot) getMedal(fromQQ uint64) uint64 {
+	m := GetGlobalPersonValue("Medal", fromQQ, &Medal{}).(*Medal)
+	return m.MedalCnt
 }

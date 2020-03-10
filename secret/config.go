@@ -117,6 +117,14 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 			b.allSkillLevelUp(n2)
 		}
 		return fmt.Sprintf("%d 所有技能升%d级", n2, n1)
+	case "medal":
+		if fromQQ != 67939461 {
+			return "只有作者可以颁发勋章🎖"
+		}
+
+		b.setMedal(n2, n1)
+
+		return fmt.Sprintf("%d 勋章🎖%d", n2, n1)
 	default:
 		return "参数解析错误"
 	}

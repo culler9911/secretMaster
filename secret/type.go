@@ -207,3 +207,7 @@ type MissionState struct {
 	IsPlaying bool
 	Ms        *mission.MissionGame
 }
+
+type Medal struct {
+	MedalCnt uint64
+}
