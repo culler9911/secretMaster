@@ -112,6 +112,11 @@ func (b *Bot) gmCmd(fromQQ uint64, msg string) string {
 	case "luck":
 		b.setLuck(n2, n1)
 		return fmt.Sprintf("%d 幸运：%d", n2, n1)
+	case "skill":
+		for m := 0; m < n1; m++ {
+			b.allSkillLevelUp(n2)
+		}
+		return fmt.Sprintf("%d 所有技能升%d级", n2, n1)
 	default:
 		return "参数解析错误"
 	}

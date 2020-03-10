@@ -251,7 +251,7 @@ var menus = Menu{
 	0,
 	"帮助",
 	"回复 帮助 可显示帮助信息。",
-	"支持私聊查询，私聊格式为 指令@群号 其余详细介绍请见：https://github.com/molin0000/secretMaster/blob/master/README.md`",
+	"支持私聊查询，私聊格式为 指令@群号 详细游戏指南请访问：https://github.com/molin0000/secretMaster/blob/master/playGuide.md`",
 	[]Menu{
 		{7, "设置", "回复 设置 可查看插件高级设置。", "", []Menu{
 			{71, ".master", "查看和设置管理员，设置本群的GM，格式为：.master;QQ号码，必须先设置管理员，才能使用其它设置指令, 查看指令.master。", "", nil},
@@ -341,4 +341,4 @@ var fishList = []Fish{
 
 var missionPath = "data/app/me.cqp.molin.secretMaster/mission"
 
-var version = &Version{"序列战争", "v2.3.4", "2020-03-10"}
+var version = &Version{"序列战争", "v2.3.5", "2020-03-10"}
