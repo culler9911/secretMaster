@@ -187,10 +187,10 @@ func (b *Bot) IsSilent() bool {
 	fmt.Println("Slient check:", dayMinute, startMinute, endMinute)
 
 	if dayMinute >= startMinute && dayMinute <= endMinute {
-		return true
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (b *Bot) SetSilentTime(fromQQ uint64, msg string) string {
