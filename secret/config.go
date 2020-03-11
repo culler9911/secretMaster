@@ -219,5 +219,5 @@ func (b *Bot) SetSilentTime(fromQQ uint64, msg string) string {
 		return "静默功能开启." + fmt.Sprintf("%+v", strs)
 	}
 
-	return "未知指令：" + fmt.Sprintf("%+v", strs)
+	return fmt.Sprintf("%+v", s)
 }
