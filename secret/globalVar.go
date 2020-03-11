@@ -263,6 +263,7 @@ var menus = Menu{
 			{77, "货币降级", "取消货币映射，还原为插件内部金镑使用。", "", nil},
 			{78, "GM", "GM指令格式为：GM;exp;100;QQ号 目前支持exp,money,magic,god,luck数值支持加和减。", "", nil},
 			{79, "版本", "查询当前插件版本号。", "", nil},
+			{80, "silent", "设置当前QQ群的静默时间段，启用静默格式为: silent;on;20:00;21:00 或者关闭静默 silent;off", "", nil},
 		}},
 		{1, "资料", "回复 资料 可显示与人物信息相关的指令。", "", []Menu{
 			{11, "属性", "回复 属性 可查询当前人物的属性信息。", "", nil},
@@ -342,4 +343,4 @@ var fishList = []Fish{
 
 var missionPath = "data/app/me.cqp.molin.secretMaster/mission"
 
-var version = &Version{"序列战争", "v2.5.0", "2020-03-11"}
+var version = &Version{"序列战争", "v2.6.0", "2020-03-11"}

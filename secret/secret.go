@@ -399,6 +399,11 @@ func (b *Bot) cmdRun(msg string, fromQQ uint64) string {
 		}
 		return b.startMission(fromQQ, msg)
 	}
+
+	if strings.Contains(msg, "silent") {
+		return b.SetSilentTime(fromQQ, msg)
+	}
+
 	return ""
 }
 

@@ -219,3 +219,9 @@ type CalcState struct {
 type Medal struct {
 	MedalCnt uint64
 }
+
+type SilenceState struct {
+	IsSilence     bool
+	OpenStartTime string
+	OpenEndTime   string
+}
