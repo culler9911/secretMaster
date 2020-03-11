@@ -207,17 +207,14 @@ func (b *Bot) SetSilentTime(fromQQ uint64, msg string) string {
 	}
 
 	strs := strings.Split(msg, ";")
-	if len(strs) != 4 {
-		return "参数错误:" + fmt.Sprintf("%+v", strs)
+	if len(strs) == 4 {
+		if strs[1] == "on" {
+			s.IsSilence = true
+			s.OpenStartTime = strs[2]
+			s.OpenEndTime = strs[3]
+			b.setGroupValue("Silence", s)
+			return "静默功能开启." + fmt.Sprintf("%+v", strs)
+		}
 	}
-
-	if strs[1] == "on" {
-		s.IsSilence = true
-		s.OpenStartTime = strs[2]
-		s.OpenEndTime = strs[3]
-		b.setGroupValue("Silence", s)
-		return "静默功能开启." + fmt.Sprintf("%+v", strs)
-	}
-
 	return fmt.Sprintf("%+v", s)
 }
