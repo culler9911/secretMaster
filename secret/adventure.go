@@ -8,8 +8,8 @@ import (
 
 func (b *Bot) adventure(fromQQ uint64, limit bool) string {
 	a := b.getAdvFromDb(fromQQ)
-	if limit && a.DayCnt >= (3+b.getAdditionAdventure(fromQQ)) {
-		return "对不起，您今日奇遇探险机会已经用完"
+	if limit && a.DayCnt >= (5+b.getAdditionAdventure(fromQQ)) {
+		return "嘿，别想着溜去捣乱啦。"
 	}
 
 	money := b.getMoney(fromQQ)
